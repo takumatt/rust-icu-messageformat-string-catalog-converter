@@ -19,15 +19,14 @@ impl XCStringConverter {
         let parsed_messages: Vec<_> = localizable_icu_message.messages.iter().map(|(locale, message)| {
             let mut parser = icu_messageformat_parser::Parser::new(message, &self.parser_options);
             let parsed = parser.parse().unwrap();
-            print!("{:?}", parsed);
             parsed.iter().for_each(|element| {
-                let formatted = models::XCStringFormatter::new(element); // Dereference the element reference
-                println!("{:?}", formatted);
+                let formatted = models::XCStringFormatter::new(element).format(); // Dereference the element reference
+                println!("{:?}{:?}", locale, formatted);
             });
         }).collect();
 
         parsed_messages.iter().for_each(|parsed_message| {
-            println!("{:?}", parsed_message);
+
         });
         
         "".to_string()
