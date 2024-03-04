@@ -1,5 +1,6 @@
 mod xc_string_converter;
 mod models;
+mod xcstring;
 
 fn main() {
     println!("Hello, world!");
