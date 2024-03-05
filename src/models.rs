@@ -1,4 +1,6 @@
 pub use std::collections::HashMap;
+pub use std::collections::BTreeSet;
+use std::default;
 use icu_messageformat_parser::AstElement;
 
 #[derive(Debug)]
@@ -8,21 +10,25 @@ pub struct LocalizableICUMessage {
 }
 
 #[derive(Debug)]
-pub struct XCStringFormatter<'a> {
-   pub element_type: AstElement<'a>,
+pub struct XCStringFormatter {
+   argument_positions: BTreeSet<String>
 }
 
-impl<'a> XCStringFormatter<'a> {
-   pub fn new(element: &'a AstElement) -> Self {
-      Self {
-         element_type: element.clone(),
+impl<'a> XCStringFormatter {
+   pub fn new() -> Self {
+      XCStringFormatter {
+         argument_positions: BTreeSet::new(),
       }
    }
 
-   pub fn format(&self) -> String {
-      match &self.element_type {
+   pub fn format(&mut self, element: &'a AstElement) -> String {
+      match &element {
          AstElement::Literal { value, span } => value.to_string(),
-         AstElement::Argument { value, span } => value.to_string(),
+         AstElement::Argument { value, span } => {
+            self.argument_positions.insert(value.to_string());
+            let index = self.argument_positions.iter().position(|x| x == value).unwrap();
+            format!("#{}$@", index + 1)
+         },
          _ => "".to_string(),
       }
    }

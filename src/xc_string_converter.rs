@@ -20,19 +20,20 @@ impl XCStringConverter {
             extraction_state: xcstring::ExtractionState::Manual,
             localizations: std::collections::HashMap::new(),
         };
-        let parsed_messages: Vec<_> = localizable_icu_message.messages.iter().map(|(locale, message)| {
+        let mut formatter = models::XCStringFormatter::new();
+        localizable_icu_message.messages.iter().for_each(|(locale, message)| {
             let mut parser = icu_messageformat_parser::Parser::new(message, &self.parser_options);
             let parsed = parser.parse().unwrap();
-            parsed.iter().for_each(|element| {
-                let formatted = models::XCStringFormatter::new(element).format(); // Dereference the element reference
-                xcstring.localizations.insert(locale.clone(), xcstring::Localization {
-                    string_unit: xcstring::StringUnit {
-                        localization_state: xcstring::LocalizationState::Translated,
-                        value: formatted,
-                    },
-                });
+            let formatted_strings = parsed.iter().map(|element| {
+                formatter.format(element)
+            }).collect::<Vec<String>>().join("");
+            xcstring.localizations.insert(locale.clone(), xcstring::Localization {
+                string_unit: xcstring::StringUnit {
+                    localization_state: xcstring::LocalizationState::Translated,
+                    value: formatted_strings,
+                },
             });
-        }).collect();
+        });
         xcstring
     }
 }
