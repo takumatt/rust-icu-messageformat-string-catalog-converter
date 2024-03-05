@@ -11,10 +11,12 @@ pub struct XCStrings {
 #[derive(Debug, Serialize)]
 pub struct XCString {
   pub extraction_state: ExtractionState,
+  #[serde(flatten)]
   pub localizations: HashMap<String, Localization>,
 }
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "lowercase")]
 pub enum ExtractionState {
   Manual
 }
@@ -31,6 +33,7 @@ pub struct StringUnit {
 }
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "lowercase")]
 pub enum LocalizationState {
   Translated
 }

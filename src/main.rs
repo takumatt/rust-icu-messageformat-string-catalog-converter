@@ -8,7 +8,7 @@ fn main() {
         ("en".to_string(), "Hello, {name}!".to_string()),
         ("es".to_string(), "¡Hola, {name}!".to_string()),
     ].into_iter().collect());
-    print!("{:?}", message.messages);
+    println!("{:?}", message.messages);
     let converter = xc_string_converter::XCStringConverter::new(icu_messageformat_parser::ParserOptions::default());
     converter.convert(message);
 }

@@ -18,13 +18,18 @@ impl XCStringConverter {
     pub fn convert(&self, localizable_icu_message: models::LocalizableICUMessage) -> String {
         let parsed_messages: Vec<_> = localizable_icu_message.messages.iter().map(|(locale, message)| {
             let mut parser = icu_messageformat_parser::Parser::new(message, &self.parser_options);
-
-            let mut xcstring = xcstring::XCString {
+            let xcstring = xcstring::XCString {
                 extraction_state: xcstring::ExtractionState::Manual,
-                localizations: todo!(),
+                localizations: std::collections::HashMap::from([
+                    (locale.to_string(), xcstring::Localization {
+                        string_unit: xcstring::StringUnit {
+                            localization_state: xcstring::LocalizationState::Translated,
+                            value: message.to_string(),
+                        },
+                    }),
+                ]),
             };
-            
-            print!("{:?}", xcstring);
+            println!("{}", serde_json::to_string_pretty(&xcstring).unwrap());
             let parsed = parser.parse().unwrap();
             parsed.iter().for_each(|element| {
                 let formatted = models::XCStringFormatter::new(element).format(); // Dereference the element reference
