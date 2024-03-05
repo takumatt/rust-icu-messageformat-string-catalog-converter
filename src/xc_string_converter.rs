@@ -1,5 +1,5 @@
 use icu_messageformat_parser;
-use crate::models;
+use crate::{models, xcstring};
 
 #[derive(Debug)]
 pub struct XCStringConverter {
@@ -18,6 +18,13 @@ impl XCStringConverter {
     pub fn convert(&self, localizable_icu_message: models::LocalizableICUMessage) -> String {
         let parsed_messages: Vec<_> = localizable_icu_message.messages.iter().map(|(locale, message)| {
             let mut parser = icu_messageformat_parser::Parser::new(message, &self.parser_options);
+
+            let mut xcstring = xcstring::XCString {
+                extraction_state: xcstring::ExtractionState::Manual,
+                localizations: todo!(),
+            };
+            
+            print!("{:?}", xcstring);
             let parsed = parser.parse().unwrap();
             parsed.iter().for_each(|element| {
                 let formatted = models::XCStringFormatter::new(element).format(); // Dereference the element reference
