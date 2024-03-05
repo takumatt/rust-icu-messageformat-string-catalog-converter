@@ -3,14 +3,13 @@ mod models;
 mod xcstring;
 
 fn main() {
-    println!("Hello, world!");
     let message = models::LocalizableICUMessage::new("key".to_string(), vec![
         ("en".to_string(), "Hello, {name}!".to_string()),
         ("es".to_string(), "¡Hola, {name}!".to_string()),
     ].into_iter().collect());
-    println!("{:?}", message.messages);
     let converter = xc_string_converter::XCStringConverter::new(icu_messageformat_parser::ParserOptions::default());
-    converter.convert(message);
+    let xcstring = converter.convert(message);
+    println!("{}", serde_json::to_string_pretty(&xcstring).unwrap());
 }
 
 impl models::LocalizableICUMessage {
