@@ -25,8 +25,11 @@ impl XCStringConverter {
             extraction_state: xcstring::ExtractionState::Manual,
             localizations: std::collections::HashMap::new(),
         };
-        // TODO: Make source language always be the first language in the list
-        let vec: Vec<(String, String)> = localizable_icu_message.messages.into_iter().collect();
+        // TODO: Formatter should do this
+        let mut vec: Vec<(String, String)> = localizable_icu_message.messages.into_iter().collect();
+        if let Some(index) = vec.iter().position(|(locale, _)| locale == &self.source_language) {
+            vec.swap(0, index)
+        }
         self.format(vec.clone()).iter().for_each(|(locale, localization)| {
             xcstring.localizations.insert(locale.clone(), localization.clone());
         });
