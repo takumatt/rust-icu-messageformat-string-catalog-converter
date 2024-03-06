@@ -42,3 +42,19 @@ impl<'a> XCStringFormatter {
       }
    }
 }
+
+#[cfg(test)]
+mod test {
+    use icu_messageformat_parser::AstElement;
+
+   #[test]
+   fn test_format() {
+      let mut formatter = super::XCStringFormatter::new("en".to_string());
+      let element = AstElement::Argument { value: "name1".to_string(), span: None };
+      assert_eq!(formatter.format(&element), "%1$@");
+      let element = AstElement::Literal { value: "Hello, ".to_string(), span: None };
+      assert_eq!(formatter.format(&element), "Hello, ");
+      let element = AstElement::Argument { value: "name2".to_string(), span: None };
+      assert_eq!(formatter.format(&element), "%2$@");
+   }
+}
