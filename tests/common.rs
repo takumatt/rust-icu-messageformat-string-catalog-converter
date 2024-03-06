@@ -26,4 +26,6 @@ fn converter_tests(file: PathBuf) {
   let fixture_sections = parse_fixture(file);
   let message: LocalizableICUMessage = serde_json::from_str(&fixture_sections.message).unwrap();
   let options: icu_messageformat_parser::ParserOptions = serde_json::from_str(&fixture_sections.options).unwrap();
+  let output: String = fixture_sections.output;
+  
 }
