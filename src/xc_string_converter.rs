@@ -1,5 +1,7 @@
+use std::{collections::HashMap, fmt::format, hash::Hash};
+
 use icu_messageformat_parser;
-use crate::{models, xcstring::{self, XCString}};
+use crate::{models::{self, LocalizableICUMessage}, xcstring::{self, Localization, XCString}};
 
 #[derive(Debug)]
 pub struct XCStringConverter {
@@ -23,21 +25,30 @@ impl XCStringConverter {
             extraction_state: xcstring::ExtractionState::Manual,
             localizations: std::collections::HashMap::new(),
         };
-        // TODO: source language
+        self.format(localizable_icu_message.messages.clone()).iter().for_each(|(locale, localization)| {
+            xcstring.localizations.insert(locale.clone(), localization.clone());
+        });
+        xcstring
+    }
+
+    fn format(&self, messages: Vec<(String, String)>) -> HashMap<String, Localization> {
         let mut formatter = models::XCStringFormatter::new(self.source_language.clone());
-        localizable_icu_message.messages.iter().for_each(|(locale, message)| {
+        HashMap::from_iter(messages.iter().map(|(locale, message)| {
             let mut parser = icu_messageformat_parser::Parser::new(message, &self.parser_options);
             let parsed = parser.parse().unwrap();
             let formatted_strings = parsed.iter().map(|element| {
                 formatter.format(element)
-            }).collect::<Vec<String>>().join("");
-            xcstring.localizations.insert(locale.clone(), xcstring::Localization {
-                string_unit: xcstring::StringUnit {
-                    localization_state: xcstring::LocalizationState::Translated,
-                    value: formatted_strings,
-                },
-            });
-        });
-        xcstring
+            }).collect::<Vec<String>>().join(""); 
+            println!("formatted_strings: {:?}", formatted_strings);           
+            (
+                locale.clone(),
+                xcstring::Localization {
+                    string_unit: xcstring::StringUnit {
+                        localization_state: xcstring::LocalizationState::Translated,
+                        value: formatted_strings,
+                    },
+                }
+            )
+        }))
     }
 }

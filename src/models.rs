@@ -6,7 +6,7 @@ use icu_messageformat_parser::AstElement;
 #[derive(Debug)]
 pub struct LocalizableICUMessage {
    pub key: String,
-   pub messages: HashMap<String, String>,
+   pub messages: Vec<(String, String)>,
 }
 
 #[derive(Debug)]
@@ -31,7 +31,12 @@ impl<'a> XCStringFormatter {
          AstElement::Argument { value, span } => {
             self.argument_positions.insert(value.to_string());
             let index = self.argument_positions.iter().position(|x| x == value).unwrap();
-            format!("#{}$@", index + 1)
+            format!("%{}$@", index + 1)
+         },
+         AstElement::Number { value, span, style } => {
+            self.argument_positions.insert(value.to_string());
+            let index = self.argument_positions.iter().position(|x| x == value).unwrap();
+            format!("%{}$lld", index)
          },
          _ => "".to_string(),
       }
