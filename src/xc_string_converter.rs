@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::format, hash::Hash};
+use std::{collections::HashMap, fmt::format, hash::Hash, vec};
 
 use icu_messageformat_parser;
 use crate::{models::{self, LocalizableICUMessage}, xcstring::{self, Localization, XCString}};
@@ -25,7 +25,9 @@ impl XCStringConverter {
             extraction_state: xcstring::ExtractionState::Manual,
             localizations: std::collections::HashMap::new(),
         };
-        self.format(localizable_icu_message.messages.clone()).iter().for_each(|(locale, localization)| {
+        // TODO: Make source language always be the first language in the list
+        let vec: Vec<(String, String)> = localizable_icu_message.messages.into_iter().collect();
+        self.format(vec.clone()).iter().for_each(|(locale, localization)| {
             xcstring.localizations.insert(locale.clone(), localization.clone());
         });
         xcstring

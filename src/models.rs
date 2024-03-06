@@ -2,11 +2,13 @@ pub use std::collections::HashMap;
 pub use std::collections::BTreeSet;
 use std::default;
 use icu_messageformat_parser::AstElement;
+use serde::Deserialize;
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct LocalizableICUMessage {
    pub key: String,
-   pub messages: Vec<(String, String)>,
+   // #[serde(flatten)]
+   pub messages: HashMap<String, String>,
 }
 
 #[derive(Debug)]
@@ -56,5 +58,21 @@ mod test {
       assert_eq!(formatter.format(&element), "Hello, ");
       let element = AstElement::Argument { value: "name2".to_string(), span: None };
       assert_eq!(formatter.format(&element), "%2$@");
+   }
+
+   #[test]
+   fn test_deserialize_localizable_icu_message() {
+      let json = r#"{
+         "key": "key",
+         "messages": {
+            "en": "Hello, {name1} and {name2}!",
+            "es": "¡Hola, {name2} y {name1}!"
+         }
+      }"#;
+      let message: super::LocalizableICUMessage = serde_json::from_str(json).unwrap();
+      assert_eq!(message.key, "key");
+      assert_eq!(message.messages.len(), 2);
+      assert_eq!(message.messages.get("en").unwrap(), "Hello, {name1} and {name2}!");
+      assert_eq!(message.messages.get("es").unwrap(), "¡Hola, {name2} y {name1}!");
    }
 }

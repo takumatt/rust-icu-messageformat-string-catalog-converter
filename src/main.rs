@@ -3,7 +3,6 @@ mod models;
 mod xcstring;
 
 fn main() {
-    // TODO: Make source language always be the first language in the list
     let message = models::LocalizableICUMessage::new("key".to_string(), vec![
         ("en".to_string(), "Hello, {name1} and {name2}!".to_string()),
         ("es".to_string(), "¡Hola, {name2} y {name1}!".to_string()),
@@ -17,9 +16,9 @@ fn main() {
 }
 
 impl models::LocalizableICUMessage {
-    fn new(key: String, messages: Vec<(String, String)>) -> Self {
-        Self {
-            key,
+    fn new(key: String, messages: std::collections::HashMap<String, String>) -> models::LocalizableICUMessage {
+        models::LocalizableICUMessage {
+            key: key,
             messages: messages,
         }
     }
