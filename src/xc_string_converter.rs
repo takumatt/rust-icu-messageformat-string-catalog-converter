@@ -3,14 +3,17 @@ use crate::{models, xcstring::{self, XCString}};
 
 #[derive(Debug)]
 pub struct XCStringConverter {
+    source_language: String,
     parser_options: icu_messageformat_parser::ParserOptions,
 }
 
 impl XCStringConverter {
     pub fn new(
+        source_language: String,
         parser_options: icu_messageformat_parser::ParserOptions
     ) -> XCStringConverter {
         XCStringConverter {
+            source_language: source_language,
             parser_options,
         }
     }
@@ -20,7 +23,8 @@ impl XCStringConverter {
             extraction_state: xcstring::ExtractionState::Manual,
             localizations: std::collections::HashMap::new(),
         };
-        let mut formatter = models::XCStringFormatter::new();
+        // TODO: source language
+        let mut formatter = models::XCStringFormatter::new(self.source_language.clone());
         localizable_icu_message.messages.iter().for_each(|(locale, message)| {
             let mut parser = icu_messageformat_parser::Parser::new(message, &self.parser_options);
             let parsed = parser.parse().unwrap();

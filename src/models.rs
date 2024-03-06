@@ -11,12 +11,16 @@ pub struct LocalizableICUMessage {
 
 #[derive(Debug)]
 pub struct XCStringFormatter {
+   source_language: String,
    argument_positions: BTreeSet<String>
 }
 
 impl<'a> XCStringFormatter {
-   pub fn new() -> Self {
+   pub fn new(
+      source_language: String,
+   ) -> Self {
       XCStringFormatter {
+         source_language: "".to_string(),
          argument_positions: BTreeSet::new(),
       }
    }
