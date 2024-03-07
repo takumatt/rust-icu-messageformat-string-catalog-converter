@@ -1,6 +1,7 @@
 pub use std::collections::HashMap;
 pub use std::collections::BTreeSet;
 use std::default;
+use std::fmt::format;
 use linked_hash_map;
 use linked_hash_set::LinkedHashSet;
 use icu_messageformat_parser::AstElement;
@@ -17,6 +18,12 @@ pub struct LocalizableICUMessage {
 pub struct XCStringFormatter {
    source_language: String,
    argument_positions: LinkedHashSet<String>
+}
+
+pub enum XCStringFormatType {
+   Argument { value: String },
+   Literal,
+   Number
 }
 
 impl<'a> XCStringFormatter {
@@ -44,6 +51,12 @@ impl<'a> XCStringFormatter {
             self.argument_positions.insert(value.to_string());
             let index = self.argument_positions.iter().position(|x| x == value).unwrap();
             format!("%{}$lld", index)
+         },
+         AstElement::Plural { value, plural_type, span, offset, options } => {
+            options.0.iter().for_each(|(key, value)| {
+               println!("key: {:?}, value: {:?}", key, value);
+            });
+            format!("{}", value)
          },
          _ => "".to_string(),
       }

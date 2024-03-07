@@ -1,8 +1,8 @@
 use std::{collections::HashMap, fmt::format, hash::Hash, vec};
 
-use icu_messageformat_parser;
+use icu_messageformat_parser::{self, AstElement};
 use linked_hash_map::LinkedHashMap;
-use crate::xcstrings;
+use crate::xcstrings::{self, XCString};
 use crate::models::{self, LocalizableICUMessage};
 
 #[derive(Debug)]
@@ -66,6 +66,32 @@ impl XCStringConverter {
                     string_unit: xcstrings::StringUnit {
                         localization_state: xcstrings::LocalizationState::Translated,
                         value: formatted_strings,
+                    },
+                }
+            )
+        }))
+    }
+
+    fn _format_with_plural(&self, messages: LinkedHashMap<String, String>) -> LinkedHashMap<String, xcstrings::Localization> {
+        LinkedHashMap::from_iter(messages.iter().map(|(locale, message)| {
+            let mut parser = icu_messageformat_parser::Parser::new(message, &self.parser_options);
+            let ast = parser.parse().unwrap();
+            ast.iter().for_each(|element| {
+                match element {
+                    AstElement::Argument { value, span } => {
+                        println!("value: {:?}, span: {:?}", value, span);
+                    },
+                    others => {
+                        println!("others: {:?}", others);
+                    }
+                }
+            });
+            (
+                locale.clone(),
+                xcstrings::Localization {
+                    string_unit: xcstrings::StringUnit {
+                        localization_state: xcstrings::LocalizationState::Translated,
+                        value: message.clone(),
                     },
                 }
             )
