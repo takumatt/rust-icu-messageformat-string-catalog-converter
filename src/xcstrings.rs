@@ -10,9 +10,9 @@ pub struct XCStrings {
 }
 
 #[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct XCString {
   pub extraction_state: ExtractionState,
-  #[serde(flatten)]
   pub localizations: HashMap<String, Localization>,
 }
 
@@ -23,12 +23,14 @@ pub enum ExtractionState {
 }
 
 #[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Localization {
   pub string_unit: StringUnit,
 }
 
 #[derive(Clone, Debug, Serialize)]
 pub struct StringUnit {
+  #[serde(rename="state")]
   pub localization_state: LocalizationState,
   pub value: String,
 }
