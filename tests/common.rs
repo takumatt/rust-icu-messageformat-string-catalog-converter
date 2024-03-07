@@ -3,6 +3,7 @@ use std::{fs, path::PathBuf};
 use testing::{fixture, json};
 use serde::Deserialize;
 use rust_icu_messageformat_string_catalog_converter::models::LocalizableICUMessage;
+use rust_icu_messageformat_string_catalog_converter::xc_string_converter::XCStringConverter;
 
 #[derive(Debug, Deserialize)]
 struct Fixture {
@@ -27,5 +28,8 @@ fn converter_tests(file: PathBuf) {
   let message: LocalizableICUMessage = serde_json::from_str(&fixture_sections.message).unwrap();
   let options: icu_messageformat_parser::ParserOptions = serde_json::from_str(&fixture_sections.options).unwrap();
   let output: String = fixture_sections.output;
-  
+  let converter = XCStringConverter::new("en".to_string(), options);
+  let result = converter.convert(message);
+  let result_json_string = serde_json::to_string_pretty(&result).unwrap();
+  similar_asserts::assert_eq!(result_json_string, output);
 }

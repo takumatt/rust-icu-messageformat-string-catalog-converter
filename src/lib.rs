@@ -1,3 +1,3 @@
 pub mod models;
-
-mod xcstring;
+pub mod xcstring;
+pub mod xc_string_converter;
