@@ -2,10 +2,11 @@ use std::collections::HashMap;
 use serde::{Serialize};
 
 #[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct XCStrings {
   pub source_language: String,
   pub strings: Vec<XCString>,
-  pub version_string: String,
+  pub version: String,
 }
 
 #[derive(Clone, Debug, Serialize)]

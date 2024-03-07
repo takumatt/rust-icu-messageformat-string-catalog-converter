@@ -1,7 +1,8 @@
 use std::{collections::HashMap, fmt::format, hash::Hash, vec};
 
 use icu_messageformat_parser;
-use crate::{models::{self, LocalizableICUMessage}, xcstring::{self, Localization, XCString}};
+use crate::xcstrings;
+use crate::models::{self, LocalizableICUMessage};
 
 #[derive(Debug)]
 pub struct XCStringConverter {
@@ -20,11 +21,11 @@ impl XCStringConverter {
         }
     }
 
-    pub fn convert(&self, messages: Vec<models::LocalizableICUMessage>) -> xcstring::XCStrings {
-        let mut xcstrings = xcstring::XCStrings {
+    pub fn convert(&self, messages: Vec<models::LocalizableICUMessage>) -> xcstrings::XCStrings {
+        let mut xcstrings = xcstrings::XCStrings {
             source_language: self.source_language.clone(),
             strings: vec![],
-            version_string: "1.0".to_string(),
+            version: "1.0".to_string(),
         };
         messages.iter().for_each(|message| {
             let xcstring = self.convert_message(message.clone());
@@ -33,9 +34,9 @@ impl XCStringConverter {
         xcstrings
     }
 
-    fn convert_message(&self, localizable_icu_message: models::LocalizableICUMessage) -> XCString {
-        let mut xcstring = xcstring::XCString {
-            extraction_state: xcstring::ExtractionState::Manual,
+    fn convert_message(&self, localizable_icu_message: models::LocalizableICUMessage) -> xcstrings::XCString {
+        let mut xcstring = xcstrings::XCString {
+            extraction_state: xcstrings::ExtractionState::Manual,
             localizations: std::collections::HashMap::new(),
         };
         // TODO: Formatter should do this
@@ -49,7 +50,7 @@ impl XCStringConverter {
         xcstring
     }
 
-    fn format(&self, messages: Vec<(String, String)>) -> HashMap<String, Localization> {
+    fn format(&self, messages: Vec<(String, String)>) -> HashMap<String, xcstrings::Localization> {
         let mut formatter = models::XCStringFormatter::new(self.source_language.clone());
         HashMap::from_iter(messages.iter().map(|(locale, message)| {
             let mut parser = icu_messageformat_parser::Parser::new(message, &self.parser_options);
@@ -60,9 +61,9 @@ impl XCStringConverter {
             println!("formatted_strings: {:?}", formatted_strings);           
             (
                 locale.clone(),
-                xcstring::Localization {
-                    string_unit: xcstring::StringUnit {
-                        localization_state: xcstring::LocalizationState::Translated,
+                xcstrings::Localization {
+                    string_unit: xcstrings::StringUnit {
+                        localization_state: xcstrings::LocalizationState::Translated,
                         value: formatted_strings,
                     },
                 }

@@ -1,6 +1,6 @@
 mod xc_string_converter;
 mod models;
-mod xcstring;
+mod xcstrings;
 
 fn main() {
     let message = models::LocalizableICUMessage::new("key".to_string(), vec![
