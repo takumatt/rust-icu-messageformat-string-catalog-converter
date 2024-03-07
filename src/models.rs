@@ -2,6 +2,7 @@ pub use std::collections::HashMap;
 pub use std::collections::BTreeSet;
 use std::default;
 use linked_hash_map;
+use linked_hash_set::LinkedHashSet;
 use icu_messageformat_parser::AstElement;
 use serde::Deserialize;
 
@@ -15,7 +16,7 @@ pub struct LocalizableICUMessage {
 #[derive(Debug)]
 pub struct XCStringFormatter {
    source_language: String,
-   argument_positions: BTreeSet<String>
+   argument_positions: LinkedHashSet<String>
 }
 
 impl<'a> XCStringFormatter {
@@ -24,7 +25,7 @@ impl<'a> XCStringFormatter {
    ) -> Self {
       XCStringFormatter {
          source_language: "".to_string(),
-         argument_positions: BTreeSet::new(),
+         argument_positions: LinkedHashSet::new(),
       }
    }
 
@@ -32,8 +33,11 @@ impl<'a> XCStringFormatter {
       match &element {
          AstElement::Literal { value, span } => value.to_string(),
          AstElement::Argument { value, span } => {
-            self.argument_positions.insert(value.to_string());
-            let index = self.argument_positions.iter().position(|x| x == value).unwrap();
+            if !self.argument_positions.contains(value) {
+               self.argument_positions.insert(value.to_string());
+            }
+            let index = self.argument_positions.iter().position(|x| x.eq(value)).unwrap();
+            println!("value: {:?}, argument: {:?}", value, self.argument_positions.iter());
             format!("%{}$@", index + 1)
          },
          AstElement::Number { value, span, style } => {

@@ -51,9 +51,9 @@ impl XCStringConverter {
         xcstring
     }
 
-    fn format(&self, messages: LinkedHashMap<String, String>) -> HashMap<String, xcstrings::Localization> {
+    fn format(&self, messages: LinkedHashMap<String, String>) -> LinkedHashMap<String, xcstrings::Localization> {
         let mut formatter = models::XCStringFormatter::new(self.source_language.clone());
-        HashMap::from_iter(messages.iter().map(|(locale, message)| {
+        LinkedHashMap::from_iter(messages.iter().map(|(locale, message)| {
             let mut parser = icu_messageformat_parser::Parser::new(message, &self.parser_options);
             let parsed = parser.parse().unwrap();
             let formatted_strings = parsed.iter().map(|element| {
