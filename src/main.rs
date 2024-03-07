@@ -11,7 +11,7 @@ fn main() {
         "en".to_string(),
         icu_messageformat_parser::ParserOptions::default()
     );
-    let xcstring = converter.convert(message);
+    let xcstring = converter.convert(vec![message]);
     println!("{}", serde_json::to_string_pretty(&xcstring).unwrap());
 }
 

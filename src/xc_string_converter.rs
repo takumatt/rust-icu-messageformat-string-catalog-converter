@@ -20,7 +20,20 @@ impl XCStringConverter {
         }
     }
 
-    pub fn convert(&self, localizable_icu_message: models::LocalizableICUMessage) -> XCString {
+    pub fn convert(&self, messages: Vec<models::LocalizableICUMessage>) -> xcstring::XCStrings {
+        let mut xcstrings = xcstring::XCStrings {
+            source_language: self.source_language.clone(),
+            strings: vec![],
+            version_string: "1.0".to_string(),
+        };
+        messages.iter().for_each(|message| {
+            let xcstring = self.convert_message(message.clone());
+            xcstrings.strings.push(xcstring);
+        });
+        xcstrings
+    }
+
+    fn convert_message(&self, localizable_icu_message: models::LocalizableICUMessage) -> XCString {
         let mut xcstring = xcstring::XCString {
             extraction_state: xcstring::ExtractionState::Manual,
             localizations: std::collections::HashMap::new(),
@@ -73,8 +86,9 @@ mod tests {
             "en".to_string(),
             icu_messageformat_parser::ParserOptions::default()
         );
-        let xcstring = converter.convert(message);
-        assert_eq!(xcstring.localizations.len(), 2);
+        let xcstrings = converter.convert(vec![message]);
+        let xcstring = xcstrings.strings.get(0).unwrap();
+        assert_eq!(xcstring. localizations.len(), 2);
         assert_eq!(xcstring.localizations.get("en").unwrap().string_unit.value, "Hello, %1$@ and %2$@!");
         assert_eq!(xcstring.localizations.get("es").unwrap().string_unit.value, "¡Hola, %2$@ y %1$@!");
     }

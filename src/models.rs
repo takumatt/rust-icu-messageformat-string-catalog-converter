@@ -4,7 +4,7 @@ use std::default;
 use icu_messageformat_parser::AstElement;
 use serde::Deserialize;
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct LocalizableICUMessage {
    pub key: String,
    // #[serde(flatten)]
