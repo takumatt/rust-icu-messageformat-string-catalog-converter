@@ -1,0 +1,47 @@
+{ 
+  "key": "apple_count",
+  "messages": {
+    "ja": "私はりんごを{count}個持っています。",
+    "en": "I have { count, plural, one {an apple} other {{count} apples} }."
+  }
+}
+---
+{ 
+  "source_language": "ja"
+}
+---
+{
+  "sourceLanguage": "ja",
+  "strings": {
+    "apple_count": {
+      "extractionState": "manual",
+      "localizations": {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "I have an apple."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "I have %1$lld apples."
+                }
+              }
+            }
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "私はりんごを%1$lld個持っています。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
