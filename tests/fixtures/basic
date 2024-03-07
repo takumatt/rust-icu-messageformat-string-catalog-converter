@@ -1,8 +1,8 @@
 { 
   "key": "hello",
   "messages": {
-    "en": "Hello {your_name}, I'm {my_name}.",
     "ja": "こんにちは {your_name}、私は {my_name} です。",
+    "en": "Hello {your_name}, I'm {my_name}.",
     "ko": "안녕하세요 {your_name}, 저는 {my_name} 입니다."
   }
 }
@@ -17,16 +17,16 @@
     "hello": {
       "extractionState": "manual",
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hello %1$@, I'm %2$@."
-          }
-        },
         "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "こんにちは %1$@、私は %2$@ です。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hello %1$@, I'm %2$@."
           }
         },
         "ko": {

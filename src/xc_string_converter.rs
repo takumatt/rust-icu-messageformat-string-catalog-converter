@@ -1,6 +1,7 @@
 use std::{collections::HashMap, fmt::format, hash::Hash, vec};
 
 use icu_messageformat_parser;
+use linked_hash_map::LinkedHashMap;
 use crate::xcstrings;
 use crate::models::{self, LocalizableICUMessage};
 
@@ -24,12 +25,12 @@ impl XCStringConverter {
     pub fn convert(&self, messages: Vec<models::LocalizableICUMessage>) -> xcstrings::XCStrings {
         let mut xcstrings = xcstrings::XCStrings {
             source_language: self.source_language.clone(),
-            strings: vec![],
+            strings: LinkedHashMap::new(),
             version: "1.0".to_string(),
         };
         messages.iter().for_each(|message| {
             let xcstring = self.convert_message(message.clone());
-            xcstrings.strings.push(xcstring);
+            xcstrings.strings.insert(message.key.clone(), xcstring);
         });
         xcstrings
     }
@@ -37,20 +38,20 @@ impl XCStringConverter {
     fn convert_message(&self, localizable_icu_message: models::LocalizableICUMessage) -> xcstrings::XCString {
         let mut xcstring = xcstrings::XCString {
             extraction_state: xcstrings::ExtractionState::Manual,
-            localizations: std::collections::HashMap::new(),
+            localizations: LinkedHashMap::new(),
         };
         // TODO: Formatter should do this
-        let mut vec: Vec<(String, String)> = localizable_icu_message.messages.into_iter().collect();
-        if let Some(index) = vec.iter().position(|(locale, _)| locale == &self.source_language) {
-            vec.swap(0, index)
-        }
-        self.format(vec.clone()).iter().for_each(|(locale, localization)| {
+        // let mut vec: Vec<(String, String)> = localizable_icu_message.messages.into_iter().collect();
+        // if let Some(index) = vec.iter().position(|(locale, _)| locale == &self.source_language) {
+        //     vec.swap(0, index)
+        // }
+        self.format(localizable_icu_message.messages).iter().for_each(|(locale, localization)| {
             xcstring.localizations.insert(locale.clone(), localization.clone());
         });
         xcstring
     }
 
-    fn format(&self, messages: Vec<(String, String)>) -> HashMap<String, xcstrings::Localization> {
+    fn format(&self, messages: LinkedHashMap<String, String>) -> HashMap<String, xcstrings::Localization> {
         let mut formatter = models::XCStringFormatter::new(self.source_language.clone());
         HashMap::from_iter(messages.iter().map(|(locale, message)| {
             let mut parser = icu_messageformat_parser::Parser::new(message, &self.parser_options);
@@ -74,6 +75,8 @@ impl XCStringConverter {
 
 #[cfg(test)]
 mod tests {
+    use crate::xcstrings;
+
     #[test]
     fn test_convert() {
         let message = super::models::LocalizableICUMessage {
@@ -88,8 +91,8 @@ mod tests {
             icu_messageformat_parser::ParserOptions::default()
         );
         let xcstrings = converter.convert(vec![message]);
-        let xcstring = xcstrings.strings.get(0).unwrap();
-        assert_eq!(xcstring. localizations.len(), 2);
+        let xcstring = xcstrings.strings.get("key").unwrap();
+        assert_eq!(xcstring.localizations.len(), 2);
         assert_eq!(xcstring.localizations.get("en").unwrap().string_unit.value, "Hello, %1$@ and %2$@!");
         assert_eq!(xcstring.localizations.get("es").unwrap().string_unit.value, "¡Hola, %2$@ y %1$@!");
     }

@@ -1,11 +1,12 @@
 use std::collections::HashMap;
+use linked_hash_map::LinkedHashMap;
 use serde::{Serialize};
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct XCStrings {
   pub source_language: String,
-  pub strings: Vec<XCString>,
+  pub strings: LinkedHashMap<String, XCString>,
   pub version: String,
 }
 
@@ -13,7 +14,7 @@ pub struct XCStrings {
 #[serde(rename_all = "camelCase")]
 pub struct XCString {
   pub extraction_state: ExtractionState,
-  pub localizations: HashMap<String, Localization>,
+  pub localizations: LinkedHashMap<String, Localization>,
 }
 
 #[derive(Clone, Debug, Serialize)]

@@ -1,6 +1,7 @@
 pub use std::collections::HashMap;
 pub use std::collections::BTreeSet;
 use std::default;
+use linked_hash_map;
 use icu_messageformat_parser::AstElement;
 use serde::Deserialize;
 
@@ -8,7 +9,7 @@ use serde::Deserialize;
 pub struct LocalizableICUMessage {
    pub key: String,
    // #[serde(flatten)]
-   pub messages: HashMap<String, String>,
+   pub messages: linked_hash_map::LinkedHashMap<String, String>,
 }
 
 #[derive(Debug)]

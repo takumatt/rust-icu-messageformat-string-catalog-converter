@@ -1,3 +1,5 @@
+use linked_hash_map::LinkedHashMap;
+
 mod xc_string_converter;
 mod models;
 mod xcstrings;
@@ -16,7 +18,7 @@ fn main() {
 }
 
 impl models::LocalizableICUMessage {
-    fn new(key: String, messages: std::collections::HashMap<String, String>) -> models::LocalizableICUMessage {
+    fn new(key: String, messages: LinkedHashMap<String, String>) -> models::LocalizableICUMessage {
         models::LocalizableICUMessage {
             key: key,
             messages: messages,
