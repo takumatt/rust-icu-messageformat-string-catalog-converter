@@ -1,3 +1,6 @@
+use icu_messageformat_parser::{self, AstElement};
+use crate::xcstrings;
+
 pub struct XCStringSubstitutionBuilder {
 
 }
@@ -9,7 +12,12 @@ impl XCStringSubstitutionBuilder {
         }
     }
 
-    pub fn build(&self, messages: Vec<models::LocalizableICUMessage>) -> xcstrings::XCStrings {
-      
+    pub fn build(&self, plurals: Vec<AstElement>) -> xcstrings::Substitution {
+        let mut substitution = xcstrings::Substitution {
+            arg_num: todo!(),
+            format_specifier: todo!(),
+            variations: todo!(),
+        };
+        substitution  
     }
 }

@@ -3,6 +3,7 @@ use linked_hash_map::LinkedHashMap;
 mod models;
 mod xcstring_converter;
 mod xcstring_formatter;
+mod xcstring_substitution_builder;
 mod xcstrings;
 
 fn main() {

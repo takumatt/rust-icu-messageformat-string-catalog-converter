@@ -46,5 +46,5 @@ pub enum LocalizationState {
 pub struct Substitution {
     pub arg_num: u32,
     pub format_specifier: String,
-    pub variations: LinkedHashMap<String, StringUnit>,
+    pub variations: LinkedHashMap<String, StringUnit>
 }

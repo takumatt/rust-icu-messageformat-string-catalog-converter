@@ -1,5 +1,6 @@
 use crate::models;
 use crate::xcstring_formatter::XCStringFormatter;
+use crate::xcstring_substitution_builder::XCStringSubstitutionBuilder;
 use crate::xcstrings;
 use icu_messageformat_parser::{self, AstElement};
 use linked_hash_map::LinkedHashMap;
@@ -65,13 +66,16 @@ impl XCStringConverter {
         LinkedHashMap::from_iter(messages.iter().map(|(locale, message)| {
             let mut parser = icu_messageformat_parser::Parser::new(message, &self.parser_options);
             let parsed = parser.parse().unwrap();
-            let plurals = parsed
+            let plurals: Vec<AstElement> = parsed
                 .iter()
                 .filter(|element| match element {
                     AstElement::Plural { .. } => true,
                     _ => false,
                 })
-                .collect::<Vec<&AstElement>>();
+                .cloned()
+                .collect();
+            let substitution_builder = XCStringSubstitutionBuilder::new();
+            substitution_builder.build(plurals.clone());
             let formatted_strings = parsed
                 .iter()
                 .map(|element| formatter.format(element))
