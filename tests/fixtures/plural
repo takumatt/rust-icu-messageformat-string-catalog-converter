@@ -16,15 +16,21 @@
     "apple_count": {
       "extractionState": "manual",
       "localizations": {
-        "en" : {
+        "ja": {
           "stringUnit": {
-            "state" : "translated",
-            "value" : "I have %#@count@."
+            "state": "translated",
+            "value": "私はりんごを%1$lld個持っています。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I have %#@count@."
           },
           "substitutions": {
             "count": {
-              "argNum": 1
-              "formatSpecifier": "1lld",
+              "argNum": 1,
+              "formatSpecifier": "lld",
               "variations": {
                 "plural": {
                   "one": {
@@ -42,12 +48,6 @@
                 }
               }
             }
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "私はりんごを%1$lld個持っています。"
           }
         }
       }

@@ -75,13 +75,12 @@ impl XCStringConverter {
                 .cloned()
                 .collect();
             let substitution_builder = XCStringSubstitutionBuilder::new();
-            substitution_builder.build(plurals.clone());
+            let substitutions = substitution_builder.build(plurals.clone());
             let formatted_strings = parsed
                 .iter()
                 .map(|element| formatter.format(element))
                 .collect::<Vec<String>>()
                 .join("");
-            println!("formatted_strings: {:?}", formatted_strings);
             (
                 locale.clone(),
                 xcstrings::Localization {
@@ -89,7 +88,7 @@ impl XCStringConverter {
                         localization_state: xcstrings::LocalizationState::Translated,
                         value: formatted_strings,
                     },
-                    substitutions: None,
+                    substitutions: if substitutions.is_empty() { None } else { Some(substitutions) },
                 }
             )
         }))

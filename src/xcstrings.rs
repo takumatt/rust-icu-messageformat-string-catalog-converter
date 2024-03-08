@@ -45,8 +45,15 @@ pub enum LocalizationState {
 }
 
 #[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Substitution {
     pub arg_num: usize,
     pub format_specifier: String,
-    pub variations: LinkedHashMap<String, StringUnit>
+    pub variations: VariationType
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum VariationType {
+    Plural(LinkedHashMap<String, StringUnit>)
 }
