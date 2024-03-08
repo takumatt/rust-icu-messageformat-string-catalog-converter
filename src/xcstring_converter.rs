@@ -1,5 +1,5 @@
 use crate::models;
-use crate::xcstring_formatter::XCStringFormatter;
+use crate::xcstring_formatter::{XCStringFormatter, FormatterMode};
 use crate::xcstring_substitution_builder::XCStringSubstitutionBuilder;
 use crate::xcstrings;
 use icu_messageformat_parser::{self, AstElement};
@@ -62,7 +62,7 @@ impl XCStringConverter {
         &self,
         messages: LinkedHashMap<String, String>,
     ) -> LinkedHashMap<String, xcstrings::Localization> {
-        let mut formatter = XCStringFormatter::new();
+        let mut formatter = XCStringFormatter::new(FormatterMode::StringUnit);
         LinkedHashMap::from_iter(messages.iter().map(|(locale, message)| {
             let mut parser = icu_messageformat_parser::Parser::new(message, &self.parser_options);
             let parsed = parser.parse().unwrap();

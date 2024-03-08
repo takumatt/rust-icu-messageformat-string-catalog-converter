@@ -3,12 +3,22 @@ use linked_hash_set::LinkedHashSet;
 
 #[derive(Debug)]
 pub struct XCStringFormatter {
+    formatter_mode: FormatterMode,
     argument_positions: LinkedHashSet<String>,
 }
 
+#[derive(Debug)]
+pub enum FormatterMode {
+    StringUnit,
+    Plural,
+}
+
 impl<'a> XCStringFormatter {
-    pub fn new() -> Self {
+    pub fn new(
+        mode: FormatterMode,
+    ) -> Self {
         XCStringFormatter {
+            formatter_mode: mode,
             argument_positions: LinkedHashSet::new(),
         }
     }
@@ -25,12 +35,10 @@ impl<'a> XCStringFormatter {
                     .iter()
                     .position(|x| x.eq(value))
                     .unwrap();
-                println!(
-                    "value: {:?}, argument: {:?}",
-                    value,
-                    self.argument_positions.iter()
-                );
-                format!("%{}$@", index + 1)
+                match self.formatter_mode {
+                    FormatterMode::StringUnit => format!("%{}$@", index + 1),
+                    FormatterMode::Plural => format!("%arg"),
+                }
             }
             AstElement::Number { value, span, style } => {
                 self.argument_positions.insert(value.to_string());
@@ -62,7 +70,7 @@ mod test {
 
     #[test]
     fn test_format() {
-        let mut formatter = super::XCStringFormatter::new();
+        let mut formatter = super::XCStringFormatter::new(super::FormatterMode::StringUnit);
         let element = AstElement::Argument {
             value: "name1".to_string(),
             span: None,

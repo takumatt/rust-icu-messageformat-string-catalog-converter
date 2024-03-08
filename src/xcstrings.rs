@@ -55,5 +55,11 @@ pub struct Substitution {
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum VariationType {
-    Plural(LinkedHashMap<String, StringUnit>)
+    Plural(LinkedHashMap<String, VariationValue>)
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct VariationValue {
+    pub string_unit: StringUnit
 }
