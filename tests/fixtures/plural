@@ -17,18 +17,28 @@
       "extractionState": "manual",
       "localizations": {
         "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "I have an apple."
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "I have %1$lld apples."
+          "stringUnit": {
+            "state" : "translated",
+            "value" : "I have %#@count@."
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1
+              "formatSpecifier": "1lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "an apple"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg apples"
+                    }
+                  }
                 }
               }
             }

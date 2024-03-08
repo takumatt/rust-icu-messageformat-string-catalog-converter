@@ -89,7 +89,8 @@ impl XCStringConverter {
                         localization_state: xcstrings::LocalizationState::Translated,
                         value: formatted_strings,
                     },
-                },
+                    substitutions: None,
+                }
             )
         }))
     }

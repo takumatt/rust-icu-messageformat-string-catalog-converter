@@ -13,28 +13,31 @@ impl XCStringSubstitutionBuilder {
         }
     }
 
-    pub fn build(&self, plurals: Vec<AstElement>) -> xcstrings::Substitution {
-
-        let mut substitution = xcstrings::Substitution {
-            arg_num: todo!(),
-            format_specifier: todo!(),
-            variations: todo!()
-        };
-
-        let variations: LinkedHashMap<String, StringUnit> = LinkedHashMap::from_iter(plurals.iter().map(|plural| {
-            match plural {
+    pub fn build(&self, plurals: Vec<AstElement>) -> LinkedHashMap<String, Substitution> {
+        plurals.iter().enumerate().fold(LinkedHashMap::new(), |mut map, (index, plural)| {
+            let mut substitution = Substitution {
+                arg_num: 0,
+                format_specifier: "".to_string(),
+                variations: LinkedHashMap::new(),
+            };
+            let mut arg_num = 0;
+            let mut format_specifier = "".to_string();
+            let mut variations = LinkedHashMap::new();
+            let substitusions = match plural {
                 AstElement::Plural { value, plural_type, span, offset, options } => {
-                    let value = value.to_string();
-                    (value, StringUnit {
-                        localization_state: todo!(),
-                        value,
-                    })
+                    Substitution {
+                        arg_num: index,
+                        format_specifier: format!("{}lld", index),
+                        variations: LinkedHashMap::new(),
+                    }
                 },
-                _ => panic!("Invalid plural element")
-            }
-        }));
-
-        substitution
-
+                _ => { panic!("Unexpected AstElement") }
+            };
+            substitution.arg_num = arg_num;
+            substitution.format_specifier = format_specifier;
+            substitution.variations = variations;
+            map.insert("".to_string(), substitution);
+            map
+        })
     }
 }

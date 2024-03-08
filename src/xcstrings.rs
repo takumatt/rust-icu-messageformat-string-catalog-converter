@@ -26,6 +26,8 @@ pub enum ExtractionState {
 #[serde(rename_all = "camelCase")]
 pub struct Localization {
     pub string_unit: StringUnit,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub substitutions: Option<LinkedHashMap<String, Substitution>>
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -44,7 +46,7 @@ pub enum LocalizationState {
 
 #[derive(Clone, Debug, Serialize)]
 pub struct Substitution {
-    pub arg_num: u32,
+    pub arg_num: usize,
     pub format_specifier: String,
     pub variations: LinkedHashMap<String, StringUnit>
 }
