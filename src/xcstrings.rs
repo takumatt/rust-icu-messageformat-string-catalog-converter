@@ -4,39 +4,47 @@ use serde::Serialize;
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct XCStrings {
-  pub source_language: String,
-  pub strings: LinkedHashMap<String, XCString>,
-  pub version: String,
+    pub source_language: String,
+    pub strings: LinkedHashMap<String, XCString>,
+    pub version: String,
 }
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct XCString {
-  pub extraction_state: ExtractionState,
-  pub localizations: LinkedHashMap<String, Localization>,
+    pub extraction_state: ExtractionState,
+    pub localizations: LinkedHashMap<String, Localization>,
 }
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ExtractionState {
-  Manual
+    Manual,
 }
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Localization {
-  pub string_unit: StringUnit,
+    pub string_unit: StringUnit,
 }
 
 #[derive(Clone, Debug, Serialize)]
 pub struct StringUnit {
-  #[serde(rename="state")]
-  pub localization_state: LocalizationState,
-  pub value: String,
+    #[serde(rename = "state")]
+    pub localization_state: LocalizationState,
+    pub value: String,
 }
 
 #[derive(Clone, Debug, Serialize)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "snake_case")]
 pub enum LocalizationState {
-  Translated
+    Translated,
+    NeedsReview,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub struct Substitution {
+    pub arg_num: u32,
+    pub format_specifier: String,
+    pub variations: LinkedHashMap<String, StringUnit>,
 }

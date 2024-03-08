@@ -1,8 +1,8 @@
+use crate::models;
+use crate::xcstring_formatter::XCStringFormatter;
+use crate::xcstrings;
 use icu_messageformat_parser::{self, AstElement};
 use linked_hash_map::LinkedHashMap;
-use crate::xcstrings;
-use crate::xcstring_formatter::XCStringFormatter;
-use crate::models;
 
 #[derive(Debug)]
 pub struct XCStringConverter {
@@ -13,7 +13,7 @@ pub struct XCStringConverter {
 impl XCStringConverter {
     pub fn new(
         source_language: String,
-        parser_options: icu_messageformat_parser::ParserOptions
+        parser_options: icu_messageformat_parser::ParserOptions,
     ) -> XCStringConverter {
         XCStringConverter {
             source_language: source_language,
@@ -34,7 +34,10 @@ impl XCStringConverter {
         xcstrings
     }
 
-    fn convert_message(&self, localizable_icu_message: models::LocalizableICUMessage) -> xcstrings::XCString {
+    fn convert_message(
+        &self,
+        localizable_icu_message: models::LocalizableICUMessage,
+    ) -> xcstrings::XCString {
         let mut xcstring = xcstrings::XCString {
             extraction_state: xcstrings::ExtractionState::Manual,
             localizations: LinkedHashMap::new(),
@@ -44,27 +47,37 @@ impl XCStringConverter {
         // if let Some(index) = vec.iter().position(|(locale, _)| locale == &self.source_language) {
         //     vec.swap(0, index)
         // }
-        self.format(localizable_icu_message.messages).iter().for_each(|(locale, localization)| {
-            xcstring.localizations.insert(locale.clone(), localization.clone());
-        });
+        self.format(localizable_icu_message.messages)
+            .iter()
+            .for_each(|(locale, localization)| {
+                xcstring
+                    .localizations
+                    .insert(locale.clone(), localization.clone());
+            });
         xcstring
     }
 
-    fn format(&self, messages: LinkedHashMap<String, String>) -> LinkedHashMap<String, xcstrings::Localization> {
+    fn format(
+        &self,
+        messages: LinkedHashMap<String, String>,
+    ) -> LinkedHashMap<String, xcstrings::Localization> {
         let mut formatter = XCStringFormatter::new();
         LinkedHashMap::from_iter(messages.iter().map(|(locale, message)| {
             let mut parser = icu_messageformat_parser::Parser::new(message, &self.parser_options);
             let parsed = parser.parse().unwrap();
-            let plurals = parsed.iter().filter(|element| {
-                match element {
+            let plurals = parsed
+                .iter()
+                .filter(|element| match element {
                     AstElement::Plural { .. } => true,
                     _ => false,
-                }
-            }).collect::<Vec<&AstElement>>();
-            let formatted_strings = parsed.iter().map(|element| {
-                formatter.format(element)
-            }).collect::<Vec<String>>().join(""); 
-            println!("formatted_strings: {:?}", formatted_strings);           
+                })
+                .collect::<Vec<&AstElement>>();
+            let formatted_strings = parsed
+                .iter()
+                .map(|element| formatter.format(element))
+                .collect::<Vec<String>>()
+                .join("");
+            println!("formatted_strings: {:?}", formatted_strings);
             (
                 locale.clone(),
                 xcstrings::Localization {
@@ -72,7 +85,7 @@ impl XCStringConverter {
                         localization_state: xcstrings::LocalizationState::Translated,
                         value: formatted_strings,
                     },
-                }
+                },
             )
         }))
     }
@@ -87,16 +100,24 @@ mod tests {
             messages: vec![
                 ("en".to_string(), "Hello, {name1} and {name2}!".to_string()),
                 ("es".to_string(), "¡Hola, {name2} y {name1}!".to_string()),
-            ].into_iter().collect()
+            ]
+            .into_iter()
+            .collect(),
         };
         let converter = super::XCStringConverter::new(
             "en".to_string(),
-            icu_messageformat_parser::ParserOptions::default()
+            icu_messageformat_parser::ParserOptions::default(),
         );
         let xcstrings = converter.convert(vec![message]);
         let xcstring = xcstrings.strings.get("key").unwrap();
         assert_eq!(xcstring.localizations.len(), 2);
-        assert_eq!(xcstring.localizations.get("en").unwrap().string_unit.value, "Hello, %1$@ and %2$@!");
-        assert_eq!(xcstring.localizations.get("es").unwrap().string_unit.value, "¡Hola, %2$@ y %1$@!");
+        assert_eq!(
+            xcstring.localizations.get("en").unwrap().string_unit.value,
+            "Hello, %1$@ and %2$@!"
+        );
+        assert_eq!(
+            xcstring.localizations.get("es").unwrap().string_unit.value,
+            "¡Hola, %2$@ y %1$@!"
+        );
     }
 }
