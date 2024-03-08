@@ -1,6 +1,5 @@
-use std::collections::HashMap;
 use linked_hash_map::LinkedHashMap;
-use serde::{Serialize};
+use serde::Serialize;
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]

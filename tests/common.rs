@@ -1,9 +1,9 @@
 use std::{fs, path::PathBuf};
 
-use testing::{fixture, json};
+use testing::fixture;
 use serde::Deserialize;
 use rust_icu_messageformat_string_catalog_converter::models::LocalizableICUMessage;
-use rust_icu_messageformat_string_catalog_converter::xc_string_converter::XCStringConverter;
+use rust_icu_messageformat_string_catalog_converter::xcstring_converter::XCStringConverter;
 
 #[derive(Debug, Deserialize)]
 struct Fixture {

@@ -1,9 +1,8 @@
-use std::{collections::HashMap, fmt::format, hash::Hash, vec};
-
 use icu_messageformat_parser::{self, AstElement};
 use linked_hash_map::LinkedHashMap;
-use crate::xcstrings::{self, XCString};
-use crate::models::{self, LocalizableICUMessage};
+use crate::xcstrings;
+use crate::xcstring_formatter::XCStringFormatter;
+use crate::models;
 
 #[derive(Debug)]
 pub struct XCStringConverter {
@@ -52,10 +51,16 @@ impl XCStringConverter {
     }
 
     fn format(&self, messages: LinkedHashMap<String, String>) -> LinkedHashMap<String, xcstrings::Localization> {
-        let mut formatter = models::XCStringFormatter::new(self.source_language.clone());
+        let mut formatter = XCStringFormatter::new();
         LinkedHashMap::from_iter(messages.iter().map(|(locale, message)| {
             let mut parser = icu_messageformat_parser::Parser::new(message, &self.parser_options);
             let parsed = parser.parse().unwrap();
+            let plurals = parsed.iter().filter(|element| {
+                match element {
+                    AstElement::Plural { .. } => true,
+                    _ => false,
+                }
+            }).collect::<Vec<&AstElement>>();
             let formatted_strings = parsed.iter().map(|element| {
                 formatter.format(element)
             }).collect::<Vec<String>>().join(""); 
@@ -71,38 +76,10 @@ impl XCStringConverter {
             )
         }))
     }
-
-    fn _format_with_plural(&self, messages: LinkedHashMap<String, String>) -> LinkedHashMap<String, xcstrings::Localization> {
-        LinkedHashMap::from_iter(messages.iter().map(|(locale, message)| {
-            let mut parser = icu_messageformat_parser::Parser::new(message, &self.parser_options);
-            let ast = parser.parse().unwrap();
-            ast.iter().for_each(|element| {
-                match element {
-                    AstElement::Argument { value, span } => {
-                        println!("value: {:?}, span: {:?}", value, span);
-                    },
-                    others => {
-                        println!("others: {:?}", others);
-                    }
-                }
-            });
-            (
-                locale.clone(),
-                xcstrings::Localization {
-                    string_unit: xcstrings::StringUnit {
-                        localization_state: xcstrings::LocalizationState::Translated,
-                        value: message.clone(),
-                    },
-                }
-            )
-        }))
-    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::xcstrings;
-
     #[test]
     fn test_convert() {
         let message = super::models::LocalizableICUMessage {
