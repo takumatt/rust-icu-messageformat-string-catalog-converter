@@ -41,13 +41,15 @@ impl<'a> XCStringFormatter {
                 }
             }
             AstElement::Number { value, span, style } => {
-                self.argument_positions.insert(value.to_string());
+                if !self.argument_positions.contains(value) {
+                    self.argument_positions.insert(value.to_string());
+                }
                 let index = self
                     .argument_positions
                     .iter()
                     .position(|x| x == value)
                     .unwrap();
-                format!("%{}$lld", index)
+                format!("%{}$lld", index + 1)
             }
             AstElement::Plural {
                 value,

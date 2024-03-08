@@ -43,11 +43,6 @@ impl XCStringConverter {
             extraction_state: xcstrings::ExtractionState::Manual,
             localizations: LinkedHashMap::new(),
         };
-        // TODO: Formatter should do this
-        // let mut vec: Vec<(String, String)> = localizable_icu_message.messages.into_iter().collect();
-        // if let Some(index) = vec.iter().position(|(locale, _)| locale == &self.source_language) {
-        //     vec.swap(0, index)
-        // }
         self.format(localizable_icu_message.messages)
             .iter()
             .for_each(|(locale, localization)| {

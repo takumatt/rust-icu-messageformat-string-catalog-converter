@@ -1,7 +1,7 @@
 { 
   "key": "apple_count",
   "messages": {
-    "ja": "私はりんごを{count}個持っています。",
+    "ja": "私はりんごを{count, number}個持っています。",
     "en": "I have { count, plural, one {an apple} other {{count} apples} }."
   }
 }
