@@ -1,3 +1,4 @@
+use clap::Parser;
 use linked_hash_map::LinkedHashMap;
 
 mod models;
@@ -6,7 +7,24 @@ mod xcstring_formatter;
 mod xcstring_substitution_builder;
 mod xcstrings;
 
-fn main() {
+/* #[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    /// Name of the person to greet
+    #[arg(short, long)]
+    name: String,
+
+    /// Number of times to greet
+    #[arg(short, long, default_value_t = 1)]
+    count: u8,
+} */
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    _debug();
+    Ok(())
+}
+
+fn _debug() {
     let message = models::LocalizableICUMessage::new(
         "key".to_string(),
         vec![
