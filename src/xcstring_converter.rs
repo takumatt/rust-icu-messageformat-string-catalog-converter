@@ -1,4 +1,4 @@
-use crate::models;
+use crate::models::{self, ConverterOptions};
 use crate::xcstring_formatter::{XCStringFormatter, FormatterMode};
 use crate::xcstring_substitution_builder::XCStringSubstitutionBuilder;
 use crate::xcstrings;
@@ -8,6 +8,7 @@ use linked_hash_map::LinkedHashMap;
 #[derive(Debug)]
 pub struct XCStringConverter {
     source_language: String,
+    converter_options: ConverterOptions,
     parser_options: icu_messageformat_parser::ParserOptions,
 }
 
@@ -18,6 +19,10 @@ impl XCStringConverter {
     ) -> XCStringConverter {
         XCStringConverter {
             source_language: source_language,
+            converter_options: ConverterOptions {
+                extractionState: xcstrings::ExtractionState::Manual,
+                localizationState: xcstrings::LocalizationState::Translated,
+            },
             parser_options,
         }
     }
