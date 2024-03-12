@@ -1,3 +1,5 @@
+use std::convert;
+
 use crate::models::{self, ConverterOptions};
 use crate::xcstring_formatter::{XCStringFormatter, FormatterMode};
 use crate::xcstring_substitution_builder::XCStringSubstitutionBuilder;
@@ -15,14 +17,12 @@ pub struct XCStringConverter {
 impl XCStringConverter {
     pub fn new(
         source_language: String,
+        converter_options: ConverterOptions,
         parser_options: icu_messageformat_parser::ParserOptions,
     ) -> XCStringConverter {
         XCStringConverter {
             source_language: source_language,
-            converter_options: ConverterOptions {
-                extractionState: xcstrings::ExtractionState::Manual,
-                localizationState: xcstrings::LocalizationState::Translated,
-            },
+            converter_options: converter_options,
             parser_options,
         }
     }
@@ -97,6 +97,8 @@ impl XCStringConverter {
 
 #[cfg(test)]
 mod tests {
+    use crate::models::ConverterOptions;
+
     #[test]
     fn test_convert() {
         let message = super::models::LocalizableICUMessage {
@@ -110,6 +112,7 @@ mod tests {
         };
         let converter = super::XCStringConverter::new(
             "en".to_string(),
+            ConverterOptions::default(),
             icu_messageformat_parser::ParserOptions::default(),
         );
         let xcstrings = converter.convert(vec![message]);

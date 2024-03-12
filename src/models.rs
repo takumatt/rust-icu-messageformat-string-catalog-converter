@@ -12,3 +12,13 @@ pub struct ConverterOptions {
     pub extractionState: ExtractionState,
     pub localizationState: LocalizationState,
 }
+
+impl ConverterOptions {
+    #[inline]
+    pub fn default() -> ConverterOptions {
+        ConverterOptions {
+            extractionState: ExtractionState::Manual,
+            localizationState: LocalizationState::Translated,
+        }
+    }
+}

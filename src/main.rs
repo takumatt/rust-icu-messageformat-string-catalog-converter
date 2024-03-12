@@ -40,6 +40,7 @@ fn _debug() {
     );
     let converter = xcstring_converter::XCStringConverter::new(
         "en".to_string(),
+        models::ConverterOptions::default(),
         icu_messageformat_parser::ParserOptions::default(),
     );
     let xcstring = converter.convert(vec![message]);

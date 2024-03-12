@@ -36,6 +36,7 @@ fn converter_tests(file: PathBuf) {
     let output: String = fixture_sections.output;
     let converter = XCStringConverter::new(
         options.source_language,
+        rust_icu_messageformat_string_catalog_converter::models::ConverterOptions::default(),
         icu_messageformat_parser::ParserOptions::default(),
     );
     let result = converter.convert(vec![message]);
