@@ -7,17 +7,17 @@ mod xcstring_formatter;
 mod xcstring_substitution_builder;
 mod xcstrings;
 
-/* #[derive(Parser, Debug)]
+#[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
-    /// Name of the person to greet
-    #[arg(short, long)]
-    name: String,
+    // The path to the input file
+    #[arg(short, long, value_name = "PATH")]
+    input: String,
 
-    /// Number of times to greet
-    #[arg(short, long, default_value_t = 1)]
-    count: u8,
-} */
+    // The path for the output directory
+    #[arg(short, long, value_name = "PATH")]
+    output: String,
+}
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     _debug();

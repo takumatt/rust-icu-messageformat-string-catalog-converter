@@ -9,16 +9,16 @@ pub struct LocalizableICUMessage {
 
 #[derive(Clone, Debug)]
 pub struct ConverterOptions {
-    pub extractionState: ExtractionState,
-    pub localizationState: LocalizationState,
+    pub extraction_state: ExtractionState,
+    pub localization_state: LocalizationState,
 }
 
 impl ConverterOptions {
     #[inline]
     pub fn default() -> ConverterOptions {
         ConverterOptions {
-            extractionState: ExtractionState::Manual,
-            localizationState: LocalizationState::Translated,
+            extraction_state: ExtractionState::Manual,
+            localization_state: LocalizationState::Translated,
         }
     }
 }
