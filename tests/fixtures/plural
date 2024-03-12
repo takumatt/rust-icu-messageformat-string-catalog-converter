@@ -1,7 +1,7 @@
 { 
   "key": "apple_count",
   "messages": {
-    "ja": "私はりんごを{count, number}個持っています。",
+    "ja": "私はりんごを{ count, plural, other {{count}}}個持っています。",
     "en": "I have { count, plural, one {an apple} other {{count} apples} }."
   }
 }
@@ -19,7 +19,23 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "私はりんごを%1$lld個持っています。"
+            "value": "私はりんごを%#@count@個持っています。"
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "en": {
