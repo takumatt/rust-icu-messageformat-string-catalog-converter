@@ -63,6 +63,7 @@ impl XCStringConverter {
         messages: LinkedHashMap<String, String>,
     ) -> LinkedHashMap<String, xcstrings::Localization> {
         let mut formatter = XCStringFormatter::new(FormatterMode::StringUnit);
+        // TODO: Need to check the all arguments for plurals have the same type. 
         LinkedHashMap::from_iter(messages.iter().map(|(locale, message)| {
             let mut parser = icu_messageformat_parser::Parser::new(message, &self.parser_options);
             let parsed = parser.parse().unwrap();
