@@ -27,7 +27,7 @@ pub enum ExtractionState {
 pub struct Localization {
     pub string_unit: StringUnit,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub substitutions: Option<LinkedHashMap<String, Substitution>>
+    pub substitutions: Option<LinkedHashMap<String, Substitution>>,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -49,17 +49,17 @@ pub enum LocalizationState {
 pub struct Substitution {
     pub arg_num: usize,
     pub format_specifier: String,
-    pub variations: VariationType
+    pub variations: VariationType,
 }
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum VariationType {
-    Plural(LinkedHashMap<String, VariationValue>)
+    Plural(LinkedHashMap<String, VariationValue>),
 }
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct VariationValue {
-    pub string_unit: StringUnit
+    pub string_unit: StringUnit,
 }

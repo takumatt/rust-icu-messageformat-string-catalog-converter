@@ -1,7 +1,7 @@
 use std::convert;
 
 use crate::models::{self, ConverterOptions};
-use crate::xcstring_formatter::{XCStringFormatter, FormatterMode};
+use crate::xcstring_formatter::{FormatterMode, XCStringFormatter};
 use crate::xcstring_substitution_builder::XCStringSubstitutionBuilder;
 use crate::xcstrings;
 use icu_messageformat_parser::{self, AstElement};
@@ -63,7 +63,7 @@ impl XCStringConverter {
         messages: LinkedHashMap<String, String>,
     ) -> LinkedHashMap<String, xcstrings::Localization> {
         let mut formatter = XCStringFormatter::new(FormatterMode::StringUnit);
-        // TODO: Need to check the all arguments for plurals have the same type. 
+        // TODO: Need to check the all arguments for plurals have the same type.
         LinkedHashMap::from_iter(messages.iter().map(|(locale, message)| {
             let mut parser = icu_messageformat_parser::Parser::new(message, &self.parser_options);
             let parsed = parser.parse().unwrap();
@@ -89,8 +89,12 @@ impl XCStringConverter {
                         localization_state: xcstrings::LocalizationState::Translated,
                         value: formatted_strings,
                     },
-                    substitutions: if substitutions.is_empty() { None } else { Some(substitutions) },
-                }
+                    substitutions: if substitutions.is_empty() {
+                        None
+                    } else {
+                        Some(substitutions)
+                    },
+                },
             )
         }))
     }

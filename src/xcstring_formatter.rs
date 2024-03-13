@@ -14,9 +14,7 @@ pub enum FormatterMode {
 }
 
 impl<'a> XCStringFormatter {
-    pub fn new(
-        mode: FormatterMode,
-    ) -> Self {
+    pub fn new(mode: FormatterMode) -> Self {
         XCStringFormatter {
             formatter_mode: mode,
             argument_positions: LinkedHashSet::new(),

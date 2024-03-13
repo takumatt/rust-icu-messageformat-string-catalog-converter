@@ -1,6 +1,6 @@
+use crate::xcstrings::{ExtractionState, LocalizationState};
 use linked_hash_map;
 use serde::Deserialize;
-use crate::xcstrings::{ExtractionState, LocalizationState};
 #[derive(Clone, Debug, Deserialize)]
 pub struct LocalizableICUMessage {
     pub key: String,
