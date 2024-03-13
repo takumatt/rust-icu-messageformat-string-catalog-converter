@@ -22,3 +22,13 @@ impl ConverterOptions {
         }
     }
 }
+
+#[derive(Clone, Debug)]
+pub struct CrowdinString {
+    pub identifier: String,
+    pub source_string: String,
+    pub translation: String,
+    pub context: String,
+    // pub labels: Option<Vec<String>>,
+    pub max_length: Option<u32>,
+}

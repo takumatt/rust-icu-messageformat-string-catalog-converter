@@ -14,7 +14,7 @@ struct Args {
     #[arg(short, long, value_name = "PATH")]
     input: String,
 
-    // The path for the output directory
+    // The path for the output file
     #[arg(short, long, value_name = "PATH")]
     output: String,
 }
