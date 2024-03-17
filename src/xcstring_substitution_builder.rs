@@ -1,5 +1,3 @@
-use std::fmt::Formatter;
-
 use crate::{
     xcstring_formatter::{FormatterMode, XCStringFormatter},
     xcstrings::{self, StringUnit, Substitution, VariationType, VariationValue},

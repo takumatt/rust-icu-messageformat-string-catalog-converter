@@ -1,5 +1,4 @@
-use std::borrow::Borrow;
-use std::convert;
+use std::collections::HashMap;
 
 use crate::models::{self, ConverterOptions};
 use crate::xcstring_formatter::{FormatterMode, XCStringFormatter};
@@ -99,22 +98,6 @@ impl XCStringConverter {
             )
         }))
     }
-
-    // New method for formatting, since the old one doesn't check the type of arguments.
-    fn _format(&self, messages: LinkedHashMap<String, String>) -> String {
-        let mut formatter = XCStringFormatter::new(FormatterMode::StringUnit);
-        let parsed: LinkedHashMap<String, (String, String)> = messages
-            .iter()
-            .map(|(locale, message)| {
-                let mut parser = icu_messageformat_parser::Parser::new(message, &self.parser_options);
-                let parsed = parser.parse().unwrap();
-                (locale.clone(), (message.clone(), message.clone()))
-            })
-            .collect();
-        println!("{:?}", parsed);
-        "".to_string()
-    }
-
 }
 
 #[cfg(test)]
