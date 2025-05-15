@@ -1,10 +1,15 @@
 { 
-  "key": "hello",
-  "messages": {
-    "ja": "こんにちは {your_name}、私は {my_name} です。",
-    "en": "Hello {your_name}, I'm {my_name}.",
-    "ko": "안녕하세요 {your_name}, 저는 {my_name} 입니다."
-  }
+  "strings": [
+    {
+      "key": "hello",
+      "messages": {
+        "ja": "こんにちは {your_name}、私は {my_name} です。",
+        "en": "Hello {your_name}, I'm {my_name}.",
+        "ko": "안녕하세요 {your_name}, 저는 {my_name} 입니다."
+      },
+      "comment": "A greeting message with both the user's name and speaker's name"
+    }
+  ]
 }
 ---
 { 
