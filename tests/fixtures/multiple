@@ -11,7 +11,7 @@
     {
       "key": "fruit_count",
       "messages": {
-        "ja": "{ count, plural, other {{count}}個の果物があります }",
+        "ja": "{ count, plural, other {{count}個の果物があります} }",
         "en": "{ count, plural, one {There is one fruit} other {There are {count} fruits} }"
       },
       "comment": "Shows the number of fruits with pluralization"
@@ -32,13 +32,13 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "こんにちは %@ さん"
+            "value": "こんにちは %1$@ さん"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hello %@"
+            "value": "Hello %1$@"
           }
         }
       }
@@ -49,7 +49,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "%#@count@個の果物があります"
+            "value": "%#@count@"
           },
           "substitutions": {
             "count": {
@@ -60,7 +60,7 @@
                   "other": {
                     "stringUnit": {
                       "state": "translated",
-                      "value": "%arg"
+                      "value": "%arg個の果物があります"
                     }
                   }
                 }
