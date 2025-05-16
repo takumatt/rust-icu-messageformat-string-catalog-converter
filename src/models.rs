@@ -9,6 +9,17 @@ pub struct LocalizableICUString {
     pub comment: Option<String>,
 }
 
+impl From<LocalizableICUString> for LocalizableICUMessage {
+    fn from(string: LocalizableICUString) -> Self {
+        LocalizableICUMessage {
+            key: string.key,
+            messages: string.messages,
+            comment: string.comment,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Deserialize)]
 pub struct LocalizableICUStrings {
     pub strings: Vec<LocalizableICUString>,
 }

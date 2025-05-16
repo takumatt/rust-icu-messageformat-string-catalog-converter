@@ -1,6 +1,6 @@
 use std::{fs, path::PathBuf};
 
-use rust_icu_messageformat_string_catalog_converter::models::LocalizableICUMessage;
+use rust_icu_messageformat_string_catalog_converter::models::{LocalizableICUMessage, LocalizableICUStrings};
 use rust_icu_messageformat_string_catalog_converter::xcstring_converter::XCStringConverter;
 use serde::Deserialize;
 use testing::fixture;
@@ -31,7 +31,7 @@ fn parse_fixture(file: PathBuf) -> Fixture {
 #[fixture("tests/fixtures/plural")]
 fn converter_tests(file: PathBuf) {
     let fixture_sections = parse_fixture(file);
-    let message: LocalizableICUMessage = serde_json::from_str(&fixture_sections.message).unwrap();
+    let messages: LocalizableICUStrings = serde_json::from_str(&fixture_sections.message).unwrap();
     let options: FixtureOptions = serde_json::from_str(&fixture_sections.options).unwrap();
     let output: String = fixture_sections.output;
     let converter = XCStringConverter::new(
@@ -39,7 +39,8 @@ fn converter_tests(file: PathBuf) {
         rust_icu_messageformat_string_catalog_converter::models::ConverterOptions::default(),
         icu_messageformat_parser::ParserOptions::default(),
     );
-    let result = converter.convert(vec![message]);
+    let messages: Vec<LocalizableICUMessage> = messages.strings.into_iter().map(|s| s.into()).collect();
+    let result = converter.convert(messages);
     let result_json_string = serde_json::to_string_pretty(&result).unwrap();
     similar_asserts::assert_eq!(result_json_string, output);
 }
