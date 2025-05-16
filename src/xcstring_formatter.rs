@@ -1,11 +1,5 @@
-use icu_messageformat_parser::AstElement;
+use icu_messageformat_parser::{self, AstElement};
 use linked_hash_set::LinkedHashSet;
-
-#[derive(Debug)]
-pub struct XCStringFormatter {
-    formatter_mode: FormatterMode,
-    argument_positions: LinkedHashSet<String>,
-}
 
 #[derive(Debug)]
 pub enum FormatterMode {
@@ -13,7 +7,12 @@ pub enum FormatterMode {
     Plural,
 }
 
-impl<'a> XCStringFormatter {
+pub struct XCStringFormatter {
+    formatter_mode: FormatterMode,
+    argument_positions: LinkedHashSet<String>,
+}
+
+impl XCStringFormatter {
     pub fn new(mode: FormatterMode) -> Self {
         XCStringFormatter {
             formatter_mode: mode,
@@ -21,10 +20,10 @@ impl<'a> XCStringFormatter {
         }
     }
 
-    pub fn format(&mut self, element: &'a AstElement) -> String {
+    pub fn format(&mut self, element: &AstElement) -> String {
         match &element {
-            AstElement::Literal { value, span } => value.to_string(),
-            AstElement::Argument { value, span } => {
+            AstElement::Literal { value, .. } => value.to_string(),
+            AstElement::Argument { value, .. } => {
                 if !self.argument_positions.contains(value) {
                     self.argument_positions.insert(value.to_string());
                 }
@@ -38,7 +37,7 @@ impl<'a> XCStringFormatter {
                     FormatterMode::Plural => format!("%arg"),
                 }
             }
-            AstElement::Number { value, span, style } => {
+            AstElement::Number { value, .. } => {
                 if !self.argument_positions.contains(value) {
                     self.argument_positions.insert(value.to_string());
                 }
@@ -49,15 +48,7 @@ impl<'a> XCStringFormatter {
                     .unwrap();
                 format!("%{}$lld", index + 1)
             }
-            AstElement::Plural {
-                value,
-                plural_type,
-                span,
-                offset,
-                options,
-            } => {
-                format!("%#@{}@", value)
-            }
+            AstElement::Plural { value, .. } => format!("%#@{}@", value),
             _ => "".to_string(),
         }
     }
