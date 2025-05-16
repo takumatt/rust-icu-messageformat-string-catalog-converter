@@ -66,21 +66,20 @@ impl XCStringConverter {
         LinkedHashMap::from_iter(messages.iter().map(|(locale, message)| {
             let mut parser = icu_messageformat_parser::Parser::new(message, &self.parser_options);
             let parsed = parser.parse().unwrap();
-            let plurals: Vec<AstElement> = parsed
+            let plural_and_selects: Vec<AstElement> = parsed
                 .iter()
-                .filter(|element| match element {
-                    AstElement::Plural { .. } => true,
-                    _ => false,
-                })
+                .filter(|element| matches!(element, AstElement::Plural { .. } | AstElement::Select { .. }))
                 .cloned()
                 .collect();
             let substitution_builder = XCStringSubstitutionBuilder::new();
-            let substitutions = substitution_builder.build(plurals.clone());
+            let substitutions = substitution_builder.build(plural_and_selects.clone());
             let formatted_strings = parsed
                 .iter()
                 .map(|element| formatter.format(element))
                 .collect::<Vec<String>>()
-                .join("");
+                .join("")
+                .trim()
+                .to_string();
             (
                 locale.clone(),
                 xcstrings::Localization {

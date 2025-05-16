@@ -30,6 +30,7 @@ fn parse_fixture(file: PathBuf) -> Fixture {
 #[fixture("tests/fixtures/basic")]
 #[fixture("tests/fixtures/plural")]
 #[fixture("tests/fixtures/multiple")]
+#[fixture("tests/fixtures/icu_cases")]
 fn converter_tests(file: PathBuf) {
     let fixture_sections = parse_fixture(file);
     let messages: LocalizableICUStrings = serde_json::from_str(&fixture_sections.message).unwrap();
@@ -42,6 +43,6 @@ fn converter_tests(file: PathBuf) {
     );
     let messages: Vec<LocalizableICUMessage> = messages.strings.into_iter().map(|s| s.into()).collect();
     let result = converter.convert(messages);
-    let result_json_string = serde_json::to_string_pretty(&result).unwrap();
-    similar_asserts::assert_eq!(result_json_string, output);
+    let result_json_string = serde_json::to_string_pretty(&result).unwrap().trim().to_string();
+    similar_asserts::assert_eq!(result_json_string, output.trim().to_string());
 }
