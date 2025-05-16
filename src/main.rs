@@ -52,6 +52,7 @@ impl models::LocalizableICUMessage {
         models::LocalizableICUMessage {
             key: key,
             messages: messages,
+            comment: None,
         }
     }
 }

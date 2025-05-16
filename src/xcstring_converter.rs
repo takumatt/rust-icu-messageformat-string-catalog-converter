@@ -103,33 +103,39 @@ impl XCStringConverter {
 #[cfg(test)]
 mod tests {
     use crate::models::ConverterOptions;
+    use linked_hash_map::LinkedHashMap;
 
     #[test]
     fn test_convert() {
+        let mut messages = LinkedHashMap::new();
+        messages.insert("ja".to_string(), "こんにちは {your_name}、私は {my_name} です。".to_string());
+        messages.insert("en".to_string(), "Hello {your_name}, I'm {my_name}.".to_string());
+        messages.insert("ko".to_string(), "안녕하세요 {your_name}, 저는 {my_name} 입니다.".to_string());
+
         let message = super::models::LocalizableICUMessage {
-            key: "key".to_string(),
-            messages: vec![
-                ("en".to_string(), "Hello, {name1} and {name2}!".to_string()),
-                ("es".to_string(), "¡Hola, {name2} y {name1}!".to_string()),
-            ]
-            .into_iter()
-            .collect(),
+            key: "hello".to_string(),
+            messages,
+            comment: Some("A greeting message with both the user's name and speaker's name".to_string()),
         };
         let converter = super::XCStringConverter::new(
-            "en".to_string(),
+            "ja".to_string(),
             ConverterOptions::default(),
             icu_messageformat_parser::ParserOptions::default(),
         );
         let xcstrings = converter.convert(vec![message]);
-        let xcstring = xcstrings.strings.get("key").unwrap();
-        assert_eq!(xcstring.localizations.len(), 2);
+        let xcstring = xcstrings.strings.get("hello").unwrap();
+        assert_eq!(xcstring.localizations.len(), 3);
         assert_eq!(
-            xcstring.localizations.get("en").unwrap().string_unit.value,
-            "Hello, %1$@ and %2$@!"
+            xcstring.localizations.get("ja").unwrap().string_unit.value,
+            "こんにちは %1$@、私は %2$@ です。"
         );
         assert_eq!(
-            xcstring.localizations.get("es").unwrap().string_unit.value,
-            "¡Hola, %2$@ y %1$@!"
+            xcstring.localizations.get("en").unwrap().string_unit.value,
+            "Hello %1$@, I'm %2$@."
+        );
+        assert_eq!(
+            xcstring.localizations.get("ko").unwrap().string_unit.value,
+            "안녕하세요 %1$@, 저는 %2$@ 입니다."
         );
     }
 }
