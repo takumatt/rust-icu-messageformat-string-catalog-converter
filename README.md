@@ -15,7 +15,7 @@ This Rust library provides a convenient way to convert ICU Message Format string
 
 ```bash
 # Convert ICU Message Format strings to String Catalog format
-cargo run -- -i input.json -o output.xcstrings -s ja
+cargo run -- -i input.json -o output.xcstrings -s ja -v 1.0
 ```
 
 #### Options
@@ -23,6 +23,7 @@ cargo run -- -i input.json -o output.xcstrings -s ja
 - `-i, --input <PATH>`: Path to the input JSON file
 - `-o, --output <PATH>`: Path for the output xcstrings file
 - `-s, --source-language <LANG>`: Source language code (e.g., "en", "ja")
+- `-v, --version <VERSION>`: Version of the xcstrings file (default: "1.0")
 
 #### Input Format
 

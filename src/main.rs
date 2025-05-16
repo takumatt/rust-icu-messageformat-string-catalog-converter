@@ -21,6 +21,10 @@ struct Args {
     /// The source language code (e.g., "en", "ja")
     #[arg(short, long, value_name = "LANG")]
     source_language: String,
+
+    /// The version of the xcstrings file (default: "1.0")
+    #[arg(short, long, value_name = "VERSION", default_value = "1.0")]
+    version: String,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -37,7 +41,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         icu_messageformat_parser::ParserOptions::default(),
     );
     let messages: Vec<models::LocalizableICUMessage> = messages.strings.into_iter().map(|s| s.into()).collect();
-    let xcstrings = converter.convert(messages);
+    let mut xcstrings = converter.convert(messages);
+    xcstrings.version = args.version;
 
     // Write output file
     let output_content = serde_json::to_string_pretty(&xcstrings)?;
