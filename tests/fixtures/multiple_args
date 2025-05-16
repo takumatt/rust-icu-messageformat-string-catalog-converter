@@ -1,0 +1,33 @@
+{
+  "strings": [
+    {
+      "key": "multiple_args",
+      "messages": {
+        "en": "Hello, {first} and {second}!"
+      },
+      "comment": "A message with multiple arguments"
+    }
+  ]
+}
+---
+{
+  "source_language": "en"
+}
+---
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "multiple_args": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hello, %1$@ and %2$@!"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+} 
