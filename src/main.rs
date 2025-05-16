@@ -1,5 +1,7 @@
 use clap::Parser;
 use linked_hash_map::LinkedHashMap;
+use std::fs;
+use std::path::Path;
 
 mod models;
 mod xcstring_converter;
@@ -10,49 +12,38 @@ mod xcstrings;
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
-    // The path to the input file
+    /// The path to the input file
     #[arg(short, long, value_name = "PATH")]
     input: String,
 
-    // The path for the output file
+    /// The path for the output file
     #[arg(short, long, value_name = "PATH")]
     output: String,
+
+    /// The source language code (e.g., "en", "ja")
+    #[arg(short, long, value_name = "LANG")]
+    source_language: String,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    _debug();
-    Ok(())
-}
+    let args = Args::parse();
 
-fn _debug() {
-    let message = models::LocalizableICUMessage::new(
-        "key".to_string(),
-        vec![
-            (
-                "en".to_string(),
-                "Cart: {itemCount, plural, one {{itemCount} item} other {{itemCount} items}}"
-                    .to_string(),
-            ),
-            ("es".to_string(), "¡Hola, {name2} y {name1}!".to_string()),
-        ]
-        .into_iter()
-        .collect(),
-    );
+    // Read input file
+    let input_content = fs::read_to_string(&args.input)?;
+    let messages: models::LocalizableICUStrings = serde_json::from_str(&input_content)?;
+
+    // Convert to xcstrings format
     let converter = xcstring_converter::XCStringConverter::new(
-        "en".to_string(),
+        args.source_language,
         models::ConverterOptions::default(),
         icu_messageformat_parser::ParserOptions::default(),
     );
-    let xcstring = converter.convert(vec![message]);
-    println!("{}", serde_json::to_string_pretty(&xcstring).unwrap());
-}
+    let messages: Vec<models::LocalizableICUMessage> = messages.strings.into_iter().map(|s| s.into()).collect();
+    let xcstrings = converter.convert(messages);
 
-impl models::LocalizableICUMessage {
-    fn new(key: String, messages: LinkedHashMap<String, String>) -> models::LocalizableICUMessage {
-        models::LocalizableICUMessage {
-            key: key,
-            messages: messages,
-            comment: None,
-        }
-    }
+    // Write output file
+    let output_content = serde_json::to_string_pretty(&xcstrings)?;
+    fs::write(&args.output, output_content)?;
+
+    Ok(())
 }
