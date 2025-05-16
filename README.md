@@ -33,8 +33,14 @@ cargo run -- -i input.json -o output.xcstrings -s ja -v 1.0
     {
       "key": "greeting",
       "messages": {
-        "ja": "こんにちは {name} さん",
-        "en": "Hello {name}"
+        "ja": {
+          "value": "こんにちは {name} さん",
+          "state": "translated"
+        },
+        "en": {
+          "value": "Hello {name}",
+          "state": "needs_review"
+        }
       },
       "comment": "A greeting message with the user's name"
     }
@@ -61,7 +67,7 @@ The tool converts the input into the String Catalog format (xcstrings):
         },
         "en": {
           "stringUnit": {
-            "state": "translated",
+            "state": "needs_review",
             "value": "Hello %1$@"
           }
         }

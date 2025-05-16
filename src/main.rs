@@ -25,6 +25,10 @@ struct Args {
     /// The version of the xcstrings file (default: "1.0")
     #[arg(short, long, value_name = "VERSION", default_value = "1.0")]
     version: String,
+
+    /// The localization state for all strings (translated or needs_review)
+    #[arg(short, long, value_name = "STATE", default_value = "translated")]
+    localization_state: String,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -37,7 +41,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Convert to xcstrings format
     let converter = xcstring_converter::XCStringConverter::new(
         args.source_language,
-        models::ConverterOptions::default(),
+        models::ConverterOptions {
+            extraction_state: xcstrings::ExtractionState::Manual,
+            localization_state: match args.localization_state.as_str() {
+                "translated" => xcstrings::LocalizationState::Translated,
+                "needs_review" => xcstrings::LocalizationState::NeedsReview,
+                _ => return Err("Invalid localization state. Must be 'translated' or 'needs_review'".into()),
+            },
+        },
         icu_messageformat_parser::ParserOptions::default(),
     );
     let messages: Vec<models::LocalizableICUMessage> = messages.strings.into_iter().map(|s| s.into()).collect();

@@ -48,7 +48,20 @@ impl XCStringFormatter {
                     .unwrap();
                 format!("%{}$lld", index + 1)
             }
+            AstElement::Date { value, .. } => {
+                if !self.argument_positions.contains(value) {
+                    self.argument_positions.insert(value.to_string());
+                }
+                let index = self
+                    .argument_positions
+                    .iter()
+                    .position(|x| x == value)
+                    .unwrap();
+                format!("%{}$@", index + 1)
+            }
             AstElement::Plural { value, .. } => format!("%#@{}@", value),
+            AstElement::Select { value, .. } => format!("%#@{}@", value),
+            AstElement::Pound(_) => "#".to_string(),
             _ => "".to_string(),
         }
     }
@@ -84,19 +97,19 @@ mod test {
         let json = r#"{
         "key": "key",
         "messages": {
-           "en": "Hello, {name1} and {name2}!",
-           "es": "¡Hola, {name2} y {name1}!"
+           "en": { "value": "Hello, {name1} and {name2}!", "state": "translated" },
+           "es": { "value": "¡Hola, {name2} y {name1}!", "state": "translated" }
         }
      }"#;
         let message: LocalizableICUMessage = serde_json::from_str(json).unwrap();
         assert_eq!(message.key, "key");
         assert_eq!(message.messages.len(), 2);
         assert_eq!(
-            message.messages.get("en").unwrap(),
+            message.messages.get("en").unwrap().value,
             "Hello, {name1} and {name2}!"
         );
         assert_eq!(
-            message.messages.get("es").unwrap(),
+            message.messages.get("es").unwrap().value,
             "¡Hola, {name2} y {name1}!"
         );
     }

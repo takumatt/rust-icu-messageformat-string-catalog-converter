@@ -12,55 +12,87 @@ impl XCStringSubstitutionBuilder {
         XCStringSubstitutionBuilder {}
     }
 
-    pub fn build(&self, plurals: Vec<AstElement>) -> LinkedHashMap<String, Substitution> {
+    pub fn build(&self, elements: Vec<AstElement>) -> LinkedHashMap<String, Substitution> {
         let mut formatter = XCStringFormatter::new(FormatterMode::Plural);
-        // TODO: Verify key uniqueness, contains only valid keys
-        plurals
+        elements
             .iter()
             .enumerate()
-            .fold(LinkedHashMap::new(), |mut map, (index, plural)| {
-                let pair = match plural {
+            .fold(LinkedHashMap::new(), |mut map, (index, element)| {
+                match element {
                     AstElement::Plural {
                         value,
-                        plural_type,
-                        span,
-                        offset,
+                        plural_type: _,
+                        span: _,
+                        offset: _,
                         options,
-                    } => (
-                        value,
-                        Substitution {
-                            arg_num: index + 1,
-                            format_specifier: "lld".to_string(),
-                            variations: VariationType::Plural(options.0.iter().fold(
-                                LinkedHashMap::new(),
-                                |mut map, (key, value)| {
-                                    let formatted_strings = value
-                                        .value
-                                        .iter()
-                                        .map(|element| formatter.format(element))
-                                        .collect::<Vec<String>>()
-                                        .join("");
-                                    println!("formatted_strings: {:?}", formatted_strings);
-                                    map.insert(
-                                        KeyFormat::from_string(&key.to_string()).to_string(),
-                                        VariationValue {
-                                            string_unit: StringUnit {
-                                                localization_state:
-                                                    xcstrings::LocalizationState::Translated,
-                                                value: formatted_strings,
+                    } => {
+                        map.insert(
+                            value.clone(),
+                            Substitution {
+                                arg_num: index + 1,
+                                format_specifier: "lld".to_string(),
+                                variations: VariationType::Plural(options.0.iter().fold(
+                                    LinkedHashMap::new(),
+                                    |mut map, (key, value)| {
+                                        let formatted_strings = value
+                                            .value
+                                            .iter()
+                                            .map(|element| formatter.format(element))
+                                            .collect::<Vec<String>>()
+                                            .join("");
+                                        map.insert(
+                                            KeyFormat::from_string(&key.to_string()).to_string(),
+                                            VariationValue {
+                                                string_unit: StringUnit {
+                                                    localization_state:
+                                                        xcstrings::LocalizationState::Translated,
+                                                    value: formatted_strings,
+                                                },
                                             },
-                                        },
-                                    );
-                                    map
-                                },
-                            )),
-                        },
-                    ),
-                    _ => {
-                        panic!("Unexpected AstElement")
+                                        );
+                                        map
+                                    },
+                                )),
+                            },
+                        );
                     }
-                };
-                map.insert(pair.0.clone(), pair.1);
+                    AstElement::Select {
+                        value,
+                        options,
+                        ..
+                    } => {
+                        map.insert(
+                            value.clone(),
+                            Substitution {
+                                arg_num: index + 1,
+                                format_specifier: "@".to_string(),
+                                variations: VariationType::Select(options.0.iter().fold(
+                                    LinkedHashMap::new(),
+                                    |mut map, (key, value)| {
+                                        let formatted_strings = value
+                                            .value
+                                            .iter()
+                                            .map(|element| formatter.format(element))
+                                            .collect::<Vec<String>>()
+                                            .join("");
+                                        map.insert(
+                                            key.to_string(),
+                                            VariationValue {
+                                                string_unit: StringUnit {
+                                                    localization_state:
+                                                        xcstrings::LocalizationState::Translated,
+                                                    value: formatted_strings,
+                                                },
+                                            },
+                                        );
+                                        map
+                                    },
+                                )),
+                            },
+                        );
+                    }
+                    _ => {}
+                }
                 map
             })
     }

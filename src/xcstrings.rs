@@ -37,7 +37,7 @@ pub struct StringUnit {
     pub value: String,
 }
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Serialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum LocalizationState {
     Translated,
@@ -56,6 +56,7 @@ pub struct Substitution {
 #[serde(rename_all = "camelCase")]
 pub enum VariationType {
     Plural(LinkedHashMap<String, VariationValue>),
+    Select(LinkedHashMap<String, VariationValue>),
 }
 
 #[derive(Clone, Debug, Serialize)]
