@@ -1,15 +1,14 @@
-use std::collections::HashMap;
-
 use crate::models::{self, ConverterOptions};
 use crate::xcstring_formatter::{FormatterMode, XCStringFormatter};
 use crate::xcstring_substitution_builder::XCStringSubstitutionBuilder;
 use crate::xcstrings;
-use icu_messageformat_parser::{self, Ast, AstElement};
+use icu_messageformat_parser::{self, AstElement};
 use linked_hash_map::LinkedHashMap;
 
 #[derive(Debug)]
 pub struct XCStringConverter {
     source_language: String,
+    #[allow(dead_code)]
     converter_options: ConverterOptions,
     parser_options: icu_messageformat_parser::ParserOptions,
 }

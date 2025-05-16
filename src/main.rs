@@ -1,7 +1,5 @@
 use clap::Parser;
-use linked_hash_map::LinkedHashMap;
 use std::fs;
-use std::path::Path;
 
 mod models;
 mod xcstring_converter;
