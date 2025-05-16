@@ -3,7 +3,7 @@
     {
       "key": "multiple_args",
       "messages": {
-        "en": "Hello, {first} and {second}!"
+        "en": { "value": "Hello, {first} and {second}!", "state": "translated" }
       },
       "comment": "A message with multiple arguments"
     }

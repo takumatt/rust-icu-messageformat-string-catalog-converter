@@ -3,42 +3,42 @@
     {
       "key": "simple_arg",
       "messages": {
-        "en": "Hello, {name}!"
+        "en": { "value": "Hello, {name}!", "state": "translated" }
       },
       "comment": "Simple argument replacement"
     },
     {
       "key": "multi_arg",
       "messages": {
-        "en": "Hello, {first} and {second}!"
+        "en": { "value": "Hello, {first} and {second}!", "state": "translated" }
       },
       "comment": "Multiple arguments"
     },
     {
       "key": "number",
       "messages": {
-        "en": "You have {count, number} messages."
+        "en": { "value": "You have {count, number} messages.", "state": "translated" }
       },
       "comment": "Number formatting"
     },
     {
       "key": "date",
       "messages": {
-        "en": "Today is {date, date, long}."
+        "en": { "value": "Today is {date, date, long}.", "state": "translated" }
       },
       "comment": "Date formatting"
     },
     {
       "key": "plural",
       "messages": {
-        "en": "{count, plural, one {You have one apple} other {You have # apples}}"
+        "en": { "value": "{count, plural, one {You have one apple} other {You have # apples}}", "state": "translated" }
       },
       "comment": "Pluralization"
     },
     {
       "key": "select",
       "messages": {
-        "en": "{gender, select, male {He} female {She} other {They}} is online."
+        "en": { "value": "{gender, select, male {He} female {She} other {They}} is online.", "state": "translated" }
       },
       "comment": "Select statement"
     }

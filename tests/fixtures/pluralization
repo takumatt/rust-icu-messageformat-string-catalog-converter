@@ -3,8 +3,8 @@
     {
       "key": "apple_count",
       "messages": {
-        "ja": "私はりんごを{ count, plural, other {{count}}}個持っています。",
-        "en": "I have { count, plural, one {an apple} other {{count} apples} }."
+        "ja": { "value": "私はりんごを{ count, plural, other {{count}}}個持っています。", "state": "translated" },
+        "en": { "value": "I have { count, plural, one {an apple} other {{count} apples} }.", "state": "translated" }
       },
       "comment": "Shows the number of apples with pluralization"
     }
