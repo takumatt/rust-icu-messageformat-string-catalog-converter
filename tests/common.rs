@@ -27,11 +27,11 @@ fn parse_fixture(file: PathBuf) -> Fixture {
     }
 }
 
-#[fixture("tests/fixtures/basic")]
-#[fixture("tests/fixtures/plural")]
-#[fixture("tests/fixtures/multiple")]
-#[fixture("tests/fixtures/icu_cases")]
-#[fixture("tests/fixtures/multiple_args")]
+#[fixture("tests/fixtures/simple_argument")]
+#[fixture("tests/fixtures/pluralization")]
+#[fixture("tests/fixtures/multiple_languages")]
+#[fixture("tests/fixtures/icu_messageformat")]
+#[fixture("tests/fixtures/multiple_arguments")]
 fn converter_tests(file: PathBuf) {
     let fixture_sections = parse_fixture(file);
     let messages: LocalizableICUStrings = serde_json::from_str(&fixture_sections.message).unwrap();

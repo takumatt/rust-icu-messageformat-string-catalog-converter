@@ -1,0 +1,173 @@
+{ 
+  "strings": [
+    {
+      "key": "simple_arg",
+      "messages": {
+        "en": "Hello, {name}!"
+      },
+      "comment": "Simple argument replacement"
+    },
+    {
+      "key": "multi_arg",
+      "messages": {
+        "en": "Hello, {first} and {second}!"
+      },
+      "comment": "Multiple arguments"
+    },
+    {
+      "key": "number",
+      "messages": {
+        "en": "You have {count, number} messages."
+      },
+      "comment": "Number formatting"
+    },
+    {
+      "key": "date",
+      "messages": {
+        "en": "Today is {date, date, long}."
+      },
+      "comment": "Date formatting"
+    },
+    {
+      "key": "plural",
+      "messages": {
+        "en": "{count, plural, one {You have one apple} other {You have # apples}}"
+      },
+      "comment": "Pluralization"
+    },
+    {
+      "key": "select",
+      "messages": {
+        "en": "{gender, select, male {He} female {She} other {They}} is online."
+      },
+      "comment": "Select statement"
+    }
+  ]
+}
+---
+{ 
+  "source_language": "en"
+}
+---
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "simple_arg": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hello, %1$@!"
+          }
+        }
+      }
+    },
+    "multi_arg": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hello, %1$@ and %2$@!"
+          }
+        }
+      }
+    },
+    "number": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You have %1$lld messages."
+          }
+        }
+      }
+    },
+    "date": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today is %1$@."
+          }
+        }
+      }
+    },
+    "plural": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@count@"
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "You have one apple"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "You have # apples"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "select": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@gender@ is online."
+          },
+          "substitutions": {
+            "gender": {
+              "argNum": 1,
+              "formatSpecifier": "@",
+              "variations": {
+                "select": {
+                  "male": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "He"
+                    }
+                  },
+                  "female": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "She"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "They"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+} 
