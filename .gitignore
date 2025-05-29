@@ -19,3 +19,20 @@ Cargo.lock
 /target
 
 .vscode
+
+# IDE specific
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Temporary files
+/tmp/
+*.tmp
+
+# Generated xcstrings files
+/samples/TestApp/TestApp/*.xcstrings

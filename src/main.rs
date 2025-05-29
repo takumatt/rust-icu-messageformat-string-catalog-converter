@@ -9,6 +9,7 @@ mod xcstrings;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
+#[command(disable_version_flag = true)]
 struct Args {
     /// The path to the input file
     #[arg(short, long, value_name = "PATH")]
