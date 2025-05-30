@@ -46,8 +46,6 @@ pub struct LocalizableICUMessage {
 pub struct ConverterOptions {
     pub extraction_state: ExtractionState,
     pub localization_state: LocalizationState,
-    pub warn_on_select: bool,
-    pub error_on_select: bool,
     pub split_select_elements: bool,
 }
 
@@ -57,8 +55,6 @@ impl ConverterOptions {
         ConverterOptions {
             extraction_state: ExtractionState::Manual,
             localization_state: LocalizationState::Translated,
-            warn_on_select: false,
-            error_on_select: false,
             split_select_elements: true,
         }
     }

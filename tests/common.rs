@@ -15,6 +15,7 @@ struct Fixture {
 #[derive(Debug, Deserialize)]
 struct FixtureOptions {
     source_language: String,
+    split_select_elements: Option<bool>,
 }
 
 fn parse_fixture(file: PathBuf) -> Fixture {
@@ -44,7 +45,40 @@ fn converter_tests(file: PathBuf) {
         icu_messageformat_parser::ParserOptions::default(),
     );
     let messages: Vec<LocalizableICUMessage> = messages.strings.into_iter().map(|s| s.into()).collect();
-    let result = converter.convert(messages);
+    let result = converter.convert(messages).unwrap();
     let result_json_string = serde_json::to_string_pretty(&result).unwrap().trim().to_string();
     similar_asserts::assert_eq!(result_json_string, output.trim().to_string());
+}
+
+#[test]
+fn test_select_error_case() {
+    let messages_json = r#"{
+        "strings": [
+            {
+                "key": "user_status",
+                "messages": {
+                    "en": { "value": "{gender, select, male {He} female {She} other {They}} is online.", "state": "translated" }
+                },
+                "comment": "User online status with gender selection"
+            }
+        ]
+    }"#;
+    
+    let messages: LocalizableICUStrings = serde_json::from_str(messages_json).unwrap();
+    let mut options = rust_icu_messageformat_string_catalog_converter::models::ConverterOptions::default();
+    options.split_select_elements = false;
+    
+    let converter = XCStringConverter::new(
+        "en".to_string(),
+        options,
+        icu_messageformat_parser::ParserOptions::default(),
+    );
+    
+    let messages: Vec<LocalizableICUMessage> = messages.strings.into_iter().map(|s| s.into()).collect();
+    let result = converter.convert(messages);
+    
+    assert!(result.is_err());
+    let error_message = result.unwrap_err();
+    assert!(error_message.contains("Select elements are not supported"));
+    assert!(error_message.contains("user_status"));
 }

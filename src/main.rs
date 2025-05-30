@@ -53,7 +53,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         icu_messageformat_parser::ParserOptions::default(),
     );
     let messages: Vec<models::LocalizableICUMessage> = messages.strings.into_iter().map(|s| s.into()).collect();
-    let mut xcstrings = converter.convert(messages);
+    let mut xcstrings = converter.convert(messages)?;
     xcstrings.version = args.version;
 
     // Write output file

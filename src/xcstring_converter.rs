@@ -26,26 +26,34 @@ impl XCStringConverter {
         }
     }
 
-    pub fn convert(&self, messages: Vec<models::LocalizableICUMessage>) -> xcstrings::XCStrings {
+    pub fn convert(&self, messages: Vec<models::LocalizableICUMessage>) -> Result<xcstrings::XCStrings, String> {
         let mut xcstrings = xcstrings::XCStrings {
             source_language: self.source_language.clone(),
             strings: LinkedHashMap::new(),
             version: "1.0".to_string(),
         };
         
-        messages.iter().for_each(|message| {
-            if self.converter_options.split_select_elements && self.has_select_elements(message) {
-                let split_messages = self.split_select_message(message.clone());
-                for split_message in split_messages {
-                    let xcstring = self.convert_message(split_message.clone());
-                    xcstrings.strings.insert(split_message.key, xcstring);
+        for message in messages.iter() {
+            if self.has_select_elements(message) {
+                if self.converter_options.split_select_elements {
+                    // select要素を分割
+                    let split_messages = self.split_select_message(message.clone());
+                    for split_message in split_messages {
+                        let xcstring = self.convert_message(split_message.clone());
+                        xcstrings.strings.insert(split_message.key, xcstring);
+                    }
+                } else {
+                    // エラーを返す
+                    return Err(format!("Select elements are not supported by xcstrings. Found in key: '{}'. Consider enabling split_select_elements option.", message.key));
                 }
             } else {
+                // 通常処理
                 let xcstring = self.convert_message(message.clone());
                 xcstrings.strings.insert(message.key.clone(), xcstring);
             }
-        });
-        xcstrings
+        }
+        
+        Ok(xcstrings)
     }
 
     fn convert_message(
@@ -219,7 +227,7 @@ mod tests {
             ConverterOptions::default(),
             icu_messageformat_parser::ParserOptions::default(),
         );
-        let xcstrings = converter.convert(vec![message]);
+        let xcstrings = converter.convert(vec![message]).unwrap();
         let xcstring = xcstrings.strings.get("hello").unwrap();
         assert_eq!(xcstring.localizations.len(), 3);
         assert_eq!(
