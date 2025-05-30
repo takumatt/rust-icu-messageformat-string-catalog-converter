@@ -15,7 +15,6 @@ struct Fixture {
 #[derive(Debug, Deserialize)]
 struct FixtureOptions {
     source_language: String,
-    split_select_elements: Option<bool>,
 }
 
 fn parse_fixture(file: PathBuf) -> Fixture {
