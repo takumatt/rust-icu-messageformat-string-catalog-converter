@@ -78,6 +78,7 @@ fn test_select_error_case() {
     
     assert!(result.is_err());
     let error_message = result.unwrap_err();
+    println!("Error message: {}", error_message);
     assert!(error_message.contains("Select elements are not supported"));
     assert!(error_message.contains("user_status"));
 }
