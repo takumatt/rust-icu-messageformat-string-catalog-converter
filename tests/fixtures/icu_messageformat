@@ -129,41 +129,35 @@
         }
       }
     },
-    "select": {
+    "select_male": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%#@gender@ is online."
-          },
-          "substitutions": {
-            "gender": {
-              "argNum": 1,
-              "formatSpecifier": "@",
-              "variations": {
-                "select": {
-                  "male": {
-                    "stringUnit": {
-                      "state": "translated",
-                      "value": "He"
-                    }
-                  },
-                  "female": {
-                    "stringUnit": {
-                      "state": "translated",
-                      "value": "She"
-                    }
-                  },
-                  "other": {
-                    "stringUnit": {
-                      "state": "translated",
-                      "value": "They"
-                    }
-                  }
-                }
-              }
-            }
+            "value": "He is online."
+          }
+        }
+      }
+    },
+    "select_female": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "She is online."
+          }
+        }
+      }
+    },
+    "select_other": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "They is online."
           }
         }
       }

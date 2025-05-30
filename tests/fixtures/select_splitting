@@ -1,0 +1,55 @@
+{ 
+  "strings": [
+    {
+      "key": "user_status",
+      "messages": {
+        "en": { "value": "{gender, select, male {He} female {She} other {They}} is online.", "state": "translated" }
+      },
+      "comment": "User online status with gender selection"
+    }
+  ]
+}
+---
+{ 
+  "source_language": "en"
+}
+---
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "user_status_male": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "He is online."
+          }
+        }
+      }
+    },
+    "user_status_female": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "She is online."
+          }
+        }
+      }
+    },
+    "user_status_other": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "They is online."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+} 

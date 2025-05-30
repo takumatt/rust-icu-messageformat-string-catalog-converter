@@ -1,7 +1,7 @@
 use crate::models::{self, ConverterOptions};
 use crate::xcstring_formatter::{FormatterMode, XCStringFormatter};
 use crate::xcstring_substitution_builder::XCStringSubstitutionBuilder;
-use crate::xcstrings::{self, LocalizationState};
+use crate::xcstrings;
 use icu_messageformat_parser::{self, AstElement};
 use linked_hash_map::LinkedHashMap;
 
@@ -32,9 +32,18 @@ impl XCStringConverter {
             strings: LinkedHashMap::new(),
             version: "1.0".to_string(),
         };
+        
         messages.iter().for_each(|message| {
-            let xcstring = self.convert_message(message.clone());
-            xcstrings.strings.insert(message.key.clone(), xcstring);
+            if self.converter_options.split_select_elements && self.has_select_elements(message) {
+                let split_messages = self.split_select_message(message.clone());
+                for split_message in split_messages {
+                    let xcstring = self.convert_message(split_message.clone());
+                    xcstrings.strings.insert(split_message.key, xcstring);
+                }
+            } else {
+                let xcstring = self.convert_message(message.clone());
+                xcstrings.strings.insert(message.key.clone(), xcstring);
+            }
         });
         xcstrings
     }
@@ -99,6 +108,74 @@ impl XCStringConverter {
                 },
             )
         }))
+    }
+
+    fn has_select_elements(&self, message: &models::LocalizableICUMessage) -> bool {
+        message.messages.values().any(|msg_value| {
+            let mut parser = icu_messageformat_parser::Parser::new(&msg_value.value, &self.parser_options);
+            if let Ok(parsed) = parser.parse() {
+                parsed.iter().any(|element| matches!(element, AstElement::Select { .. }))
+            } else {
+                false
+            }
+        })
+    }
+
+    fn split_select_message(&self, message: models::LocalizableICUMessage) -> Vec<models::LocalizableICUMessage> {
+        let mut split_messages = Vec::new();
+        
+        // まず、最初の言語のselect要素を解析して、分割する選択肢を取得
+        let first_message = message.messages.values().next().unwrap();
+        let mut parser = icu_messageformat_parser::Parser::new(&first_message.value, &self.parser_options);
+        if let Ok(parsed) = parser.parse() {
+            if let Some(select_element) = parsed.iter().find(|element| matches!(element, AstElement::Select { .. })) {
+                if let AstElement::Select { value: _, span: _, options } = select_element {
+                    for (case_key, case_option) in &options.0 {
+                        let new_key = format!("{}_{}", message.key, case_key);
+                        let mut new_messages = LinkedHashMap::new();
+                        
+                        for (locale, msg_value) in &message.messages {
+                            let new_value = self.replace_select_with_case(&msg_value.value, case_key, &case_option.value);
+                            new_messages.insert(locale.clone(), models::LocalizableICUMessageValue {
+                                value: new_value,
+                                state: msg_value.state.clone(),
+                            });
+                        }
+                        
+                        split_messages.push(models::LocalizableICUMessage {
+                            key: new_key,
+                            messages: new_messages,
+                            comment: message.comment.clone(),
+                        });
+                    }
+                }
+            }
+        }
+        
+        if split_messages.is_empty() {
+            vec![message]
+        } else {
+            split_messages
+        }
+    }
+
+    fn replace_select_with_case(&self, original_value: &str, _case_key: &str, case_value: &[AstElement]) -> String {
+        let mut parser = icu_messageformat_parser::Parser::new(original_value, &self.parser_options);
+        if let Ok(parsed) = parser.parse() {
+            let mut formatter = XCStringFormatter::new(FormatterMode::StringUnit);
+            let replaced_elements: Vec<String> = parsed.iter().map(|element| {
+                match element {
+                    AstElement::Select { .. } => {
+                        // select要素を選択されたケースの値に置き換える
+                        case_value.iter().map(|e| formatter.format(e)).collect::<Vec<String>>().join("")
+                    },
+                    _ => formatter.format(element)
+                }
+            }).collect();
+            replaced_elements.join("").trim().to_string()
+        } else {
+            original_value.to_string()
+        }
     }
 }
 
