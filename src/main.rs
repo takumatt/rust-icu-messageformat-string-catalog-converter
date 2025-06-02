@@ -7,7 +7,6 @@ mod xcstrings;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
-#[command(disable_version_flag = true)]
 struct Args {
     /// The path to the input file
     #[arg(short, long, value_name = "PATH")]
@@ -21,9 +20,9 @@ struct Args {
     #[arg(short, long, value_name = "LANG")]
     source_language: String,
 
-    /// The version of the xcstrings file (default: "1.0")
-    #[arg(short, long, value_name = "VERSION", default_value = "1.0")]
-    version: String,
+    /// The version of the generated xcstrings file (default: "1.0")
+    #[arg(long = "xcstrings-version", value_name = "VERSION", default_value = "1.0")]
+    xcstrings_version: String,
 
     /// The localization state for all strings (translated or needs_review)
     #[arg(short, long, value_name = "STATE", default_value = "translated")]
@@ -57,7 +56,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     let messages: Vec<models::LocalizableICUMessage> = messages.strings.into_iter().map(|s| s.into()).collect();
     let mut xcstrings = converter.convert(messages)?;
-    xcstrings.version = args.version;
+    xcstrings.version = args.xcstrings_version;
 
     // Write output file
     let output_content = serde_json::to_string_pretty(&xcstrings)?;

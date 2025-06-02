@@ -93,7 +93,7 @@ cargo run -- --input input.json --output output.xcstrings --source-language ja
 | `--input` | `-i` | Path to input JSON file | Required | `input.json` |
 | `--output` | `-o` | Path for output xcstrings file | Required | `output.xcstrings` |
 | `--source-language` | `-s` | Source language code | Required | `en`, `ja`, `ko` |
-| `--version` | `-v` | xcstrings file version | `"1.0"` | `"1.0"` |
+| `--xcstrings-version` | | xcstrings file format version | `"1.0"` | `"1.0"` |
 | `--localization-state` | `-l` | Default localization state | `translated` | `translated`, `needs_review` |
 | `--split-select-elements` | | Split select elements into separate keys | `true` | `true`, `false` |
 
