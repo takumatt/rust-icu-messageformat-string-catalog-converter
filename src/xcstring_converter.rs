@@ -42,9 +42,9 @@ impl XCStringConverter {
             if self.has_select_elements(message) {
                 if self.converter_options.split_select_elements {
                     // select要素を分割
-                    let split_messages = self.split_select_message(message.clone());
+                    let split_messages = self.split_select_message(message.clone())?;
                     for split_message in split_messages {
-                        let xcstring = self.convert_message(split_message.clone());
+                        let xcstring = self.convert_message(split_message.clone())?;
                         xcstrings.strings.insert(split_message.key, xcstring);
                     }
                 } else {
@@ -53,7 +53,7 @@ impl XCStringConverter {
                 }
             } else {
                 // 通常処理
-                let xcstring = self.convert_message(message.clone());
+                let xcstring = self.convert_message(message.clone())?;
                 xcstrings.strings.insert(message.key.clone(), xcstring);
             }
         }
@@ -149,45 +149,54 @@ impl XCStringConverter {
     fn convert_message(
         &self,
         localizable_icu_message: models::LocalizableICUMessage,
-    ) -> xcstrings::XCString {
+    ) -> Result<xcstrings::XCString, String> {
         let mut xcstring = xcstrings::XCString {
             extraction_state: xcstrings::ExtractionState::Manual,
             localizations: LinkedHashMap::new(),
         };
-        self.format(localizable_icu_message.messages)
-            .iter()
-            .for_each(|(locale, localization)| {
-                xcstring
-                    .localizations
-                    .insert(locale.clone(), localization.clone());
-            });
-        xcstring
+        
+        let localizations = self.format(localizable_icu_message.messages)?;
+        for (locale, localization) in localizations {
+            xcstring.localizations.insert(locale, localization);
+        }
+        
+        Ok(xcstring)
     }
 
     fn format(
         &self,
         messages: LinkedHashMap<String, models::LocalizableICUMessageValue>,
-    ) -> LinkedHashMap<String, xcstrings::Localization> {
-        let mut formatter = XCStringFormatter::new(FormatterMode::StringUnit);
-        // TODO: Need to check the all arguments for plurals have the same type.
-        LinkedHashMap::from_iter(messages.iter().map(|(locale, message)| {
+    ) -> Result<LinkedHashMap<String, xcstrings::Localization>, String> {
+        let mut result = LinkedHashMap::new();
+        
+        for (locale, message) in messages.iter() {
+            let mut formatter = XCStringFormatter::new(FormatterMode::StringUnit);
             let mut parser = icu_messageformat_parser::Parser::new(&message.value, &self.parser_options);
-            let parsed = parser.parse().unwrap();
+            let parsed = match parser.parse() {
+                Ok(parsed) => parsed,
+                Err(e) => return Err(format!("Failed to parse message for locale '{}': {:?}", locale, e))
+            };
+            
             let plural_and_selects: Vec<AstElement> = parsed
                 .iter()
                 .filter(|element| matches!(element, AstElement::Plural { .. } | AstElement::Select { .. }))
                 .cloned()
                 .collect();
             let substitution_builder = XCStringSubstitutionBuilder::new();
-            let substitutions = substitution_builder.build(plural_and_selects.clone());
-            let formatted_strings = parsed
-                .iter()
-                .map(|element| formatter.format(element))
-                .collect::<Vec<String>>()
+            let substitutions = match substitution_builder.build(plural_and_selects.clone()) {
+                Ok(substitutions) => substitutions,
+                Err(e) => return Err(format!("Failed to build substitutions for locale '{}': {}", locale, e))
+            };
+            let mut formatted_strings_vec = Vec::new();
+            for element in &parsed {
+                formatted_strings_vec.push(formatter.format(element)?);
+            }
+            let formatted_strings = formatted_strings_vec
                 .join("")
                 .trim()
                 .to_string();
-            (
+            
+            result.insert(
                 locale.clone(),
                 xcstrings::Localization {
                     string_unit: xcstrings::StringUnit {
@@ -204,8 +213,10 @@ impl XCStringConverter {
                         Some(substitutions)
                     },
                 },
-            )
-        }))
+            );
+        }
+        
+        Ok(result)
     }
 
     fn has_select_elements(&self, message: &models::LocalizableICUMessage) -> bool {
@@ -219,11 +230,15 @@ impl XCStringConverter {
         })
     }
 
-    fn split_select_message(&self, message: models::LocalizableICUMessage) -> Vec<models::LocalizableICUMessage> {
+    fn split_select_message(&self, message: models::LocalizableICUMessage) -> Result<Vec<models::LocalizableICUMessage>, String> {
         let mut split_messages = Vec::new();
         
         // まず、最初の言語のselect要素を解析して、分割する選択肢を取得
-        let first_message = message.messages.values().next().unwrap();
+        let first_message = match message.messages.values().next() {
+            Some(msg) => msg,
+            None => return Err(format!("No messages found for key '{}'", message.key))
+        };
+        
         let mut parser = icu_messageformat_parser::Parser::new(&first_message.value, &self.parser_options);
         if let Ok(parsed) = parser.parse() {
             if let Some(select_element) = parsed.iter().find(|element| matches!(element, AstElement::Select { .. })) {
@@ -251,9 +266,9 @@ impl XCStringConverter {
         }
         
         if split_messages.is_empty() {
-            vec![message]
+            Ok(vec![message])
         } else {
-            split_messages
+            Ok(split_messages)
         }
     }
 
@@ -261,27 +276,32 @@ impl XCStringConverter {
         let mut parser = icu_messageformat_parser::Parser::new(original_value, &self.parser_options);
         if let Ok(parsed) = parser.parse() {
             let mut formatter = XCStringFormatter::new(FormatterMode::StringUnit);
-            let replaced_elements: Vec<String> = parsed.iter().map(|element| {
+            let replaced_elements: Result<Vec<String>, String> = parsed.iter().map(|element| {
                 match element {
                     AstElement::Select { options, .. } => {
                         // この言語のselect要素から対応するケースを見つけて置換する
                         let case_option = options.0.iter().find(|(key, _)| *key == case_key);
                         if let Some((_, option)) = case_option {
-                            option.value.iter().map(|e| formatter.format(e)).collect::<Vec<String>>().join("")
+                            let formatted_results: Result<Vec<String>, String> = option.value.iter().map(|e| formatter.format(e)).collect();
+                            Ok(formatted_results?.join(""))
                         } else {
                             // フォールバック: "other"ケースを探す
                             let other_option = options.0.iter().find(|(key, _)| *key == "other");
                             if let Some((_, option)) = other_option {
-                                option.value.iter().map(|e| formatter.format(e)).collect::<Vec<String>>().join("")
+                                let formatted_results: Result<Vec<String>, String> = option.value.iter().map(|e| formatter.format(e)).collect();
+                                Ok(formatted_results?.join(""))
                             } else {
-                                "".to_string()
+                                Ok("".to_string())
                             }
                         }
                     },
                     _ => formatter.format(element)
                 }
             }).collect();
-            replaced_elements.join("").trim().to_string()
+            match replaced_elements {
+                Ok(elements) => elements.join("").trim().to_string(),
+                Err(_) => original_value.to_string()
+            }
         } else {
             original_value.to_string()
         }

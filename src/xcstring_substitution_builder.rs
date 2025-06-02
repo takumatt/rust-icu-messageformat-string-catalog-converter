@@ -12,89 +12,94 @@ impl XCStringSubstitutionBuilder {
         XCStringSubstitutionBuilder {}
     }
 
-    pub fn build(&self, elements: Vec<AstElement>) -> LinkedHashMap<String, Substitution> {
+    pub fn build(&self, elements: Vec<AstElement>) -> Result<LinkedHashMap<String, Substitution>, String> {
         let mut formatter = XCStringFormatter::new(FormatterMode::Plural);
-        elements
-            .iter()
-            .enumerate()
-            .fold(LinkedHashMap::new(), |mut map, (index, element)| {
-                match element {
-                    AstElement::Plural {
-                        value,
-                        plural_type: _,
-                        span: _,
-                        offset: _,
-                        options,
-                    } => {
-                        map.insert(
-                            value.clone(),
-                            Substitution {
-                                arg_num: index + 1,
-                                format_specifier: "lld".to_string(),
-                                variations: VariationType::Plural(options.0.iter().fold(
-                                    LinkedHashMap::new(),
-                                    |mut map, (key, value)| {
-                                        let formatted_strings = value
-                                            .value
-                                            .iter()
-                                            .map(|element| formatter.format(element))
-                                            .collect::<Vec<String>>()
-                                            .join("");
-                                        map.insert(
-                                            KeyFormat::from_string(&key.to_string()).to_string(),
-                                            VariationValue {
-                                                string_unit: StringUnit {
-                                                    localization_state:
-                                                        xcstrings::LocalizationState::Translated,
-                                                    value: formatted_strings,
-                                                },
-                                            },
-                                        );
-                                        map
-                                    },
-                                )),
+        let mut result = LinkedHashMap::new();
+        
+        for (index, element) in elements.iter().enumerate() {
+            match element {
+                AstElement::Plural {
+                    value,
+                    plural_type: _,
+                    span: _,
+                    offset: _,
+                    options,
+                } => {
+                    let mut plural_map = LinkedHashMap::new();
+                    for (key, value) in &options.0 {
+                        let key_format = KeyFormat::from_string(&key.to_string())?;
+                        let formatted_results: Result<Vec<String>, String> = value
+                            .value
+                            .iter()
+                            .map(|element| formatter.format(element))
+                            .collect();
+                        let formatted_strings = formatted_results?
+                            .join("");
+                        plural_map.insert(
+                            key_format.to_string(),
+                            VariationValue {
+                                string_unit: StringUnit {
+                                    localization_state: xcstrings::LocalizationState::Translated,
+                                    value: formatted_strings,
+                                },
                             },
                         );
                     }
-                    AstElement::Select {
-                        value,
-                        options,
-                        ..
-                    } => {
-                        map.insert(
-                            value.clone(),
-                            Substitution {
-                                arg_num: index + 1,
-                                format_specifier: "@".to_string(),
-                                variations: VariationType::Select(options.0.iter().fold(
-                                    LinkedHashMap::new(),
-                                    |mut map, (key, value)| {
-                                        let formatted_strings = value
-                                            .value
-                                            .iter()
-                                            .map(|element| formatter.format(element))
-                                            .collect::<Vec<String>>()
-                                            .join("");
-                                        map.insert(
-                                            key.to_string(),
-                                            VariationValue {
-                                                string_unit: StringUnit {
-                                                    localization_state:
-                                                        xcstrings::LocalizationState::Translated,
-                                                    value: formatted_strings,
-                                                },
-                                            },
-                                        );
-                                        map
-                                    },
-                                )),
-                            },
-                        );
-                    }
-                    _ => {}
+                    
+                    let arg_num = index.checked_add(1)
+                        .ok_or_else(|| format!("Argument number overflow for plural '{}'", value))?;
+                    
+                    result.insert(
+                        value.clone(),
+                        Substitution {
+                            arg_num,
+                            format_specifier: "lld".to_string(),
+                            variations: VariationType::Plural(plural_map),
+                        },
+                    );
                 }
-                map
-            })
+                AstElement::Select {
+                    value,
+                    options,
+                    ..
+                } => {
+                    let mut select_map = LinkedHashMap::new();
+                    for (key, value) in &options.0 {
+                        let formatted_results: Result<Vec<String>, String> = value
+                            .value
+                            .iter()
+                            .map(|element| formatter.format(element))
+                            .collect();
+                        let formatted_strings = formatted_results?
+                            .join("");
+                        select_map.insert(
+                            key.to_string(),
+                            VariationValue {
+                                string_unit: StringUnit {
+                                    localization_state: xcstrings::LocalizationState::Translated,
+                                    value: formatted_strings,
+                                },
+                            },
+                        );
+                    }
+                    
+                    let arg_num = index.checked_add(1)
+                        .ok_or_else(|| format!("Argument number overflow for select '{}'", value))?;
+                    
+                    result.insert(
+                        value.clone(),
+                        Substitution {
+                            arg_num,
+                            format_specifier: "@".to_string(),
+                            variations: VariationType::Select(select_map),
+                        },
+                    );
+                }
+                _ => {}
+            }
+        }
+        
+        Ok(result)
     }
 }
 
@@ -105,21 +110,22 @@ enum KeyFormat {
 }
 
 impl KeyFormat {
-    fn from_string(key: &String) -> KeyFormat {
+    fn from_string(key: &String) -> Result<KeyFormat, String> {
         match key.as_str() {
-            "zero" => KeyFormat::Zero,
-            "one" => KeyFormat::One,
-            "two" => panic!("String Catalog doesn't support custom keys starting with 'two'"),
-            "few" => panic!("String Catalog doesn't support custom keys starting with 'few'"),
-            "many" => panic!("String Catalog doesn't support custom keys starting with 'many'"),
-            "other" => KeyFormat::Other,
-            "=0" => KeyFormat::Zero, // "zero" is an alias for "=0"
-            "=1" => KeyFormat::One,  // "one" is an alias for "=1"
+            "zero" => Ok(KeyFormat::Zero),
+            "one" => Ok(KeyFormat::One),
+            "two" => Err("String Catalog doesn't support custom keys starting with 'two'".to_string()),
+            "few" => Err("String Catalog doesn't support custom keys starting with 'few'".to_string()),
+            "many" => Err("String Catalog doesn't support custom keys starting with 'many'".to_string()),
+            "other" => Ok(KeyFormat::Other),
+            "=0" => Ok(KeyFormat::Zero), // "zero" is an alias for "=0"
+            "=1" => Ok(KeyFormat::One),  // "one" is an alias for "=1"
             _ => {
                 if key.as_str().starts_with("=") {
-                    panic!("String Catalog doesn't support custom keys starting with '=' except for zero and one")
+                    Err("String Catalog doesn't support custom keys starting with '=' except for zero and one".to_string())
+                } else {
+                    Err(format!("Unexpected key format: '{}'", key))
                 }
-                panic!("Unexpected key format")
             }
         }
     }

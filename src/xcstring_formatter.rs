@@ -20,9 +20,9 @@ impl XCStringFormatter {
         }
     }
 
-    pub fn format(&mut self, element: &AstElement) -> String {
+    pub fn format(&mut self, element: &AstElement) -> Result<String, String> {
         match &element {
-            AstElement::Literal { value, .. } => value.to_string(),
+            AstElement::Literal { value, .. } => Ok(value.to_string()),
             AstElement::Argument { value, .. } => {
                 if !self.argument_positions.contains(value) {
                     self.argument_positions.insert(value.to_string());
@@ -31,10 +31,12 @@ impl XCStringFormatter {
                     .argument_positions
                     .iter()
                     .position(|x| x.eq(value))
-                    .unwrap();
+                    .ok_or_else(|| format!("Failed to find position for argument '{}'", value))?;
+                let position = index.checked_add(1)
+                    .ok_or_else(|| format!("Position overflow for argument '{}'", value))?;
                 match self.formatter_mode {
-                    FormatterMode::StringUnit => format!("%{}$@", index + 1),
-                    FormatterMode::Plural => format!("%arg"),
+                    FormatterMode::StringUnit => Ok(format!("%{}$@", position)),
+                    FormatterMode::Plural => Ok(format!("%arg")),
                 }
             }
             AstElement::Number { value, .. } => {
@@ -45,8 +47,10 @@ impl XCStringFormatter {
                     .argument_positions
                     .iter()
                     .position(|x| x == value)
-                    .unwrap();
-                format!("%{}$lld", index + 1)
+                    .ok_or_else(|| format!("Failed to find position for number '{}'", value))?;
+                let position = index.checked_add(1)
+                    .ok_or_else(|| format!("Position overflow for number '{}'", value))?;
+                Ok(format!("%{}$lld", position))
             }
             AstElement::Date { value, .. } => {
                 if !self.argument_positions.contains(value) {
@@ -56,13 +60,15 @@ impl XCStringFormatter {
                     .argument_positions
                     .iter()
                     .position(|x| x == value)
-                    .unwrap();
-                format!("%{}$@", index + 1)
+                    .ok_or_else(|| format!("Failed to find position for date '{}'", value))?;
+                let position = index.checked_add(1)
+                    .ok_or_else(|| format!("Position overflow for date '{}'", value))?;
+                Ok(format!("%{}$@", position))
             }
-            AstElement::Plural { value, .. } => format!("%#@{}@", value),
-            AstElement::Select { value, .. } => format!("%#@{}@", value),
-            AstElement::Pound(_) => "#".to_string(),
-            _ => "".to_string(),
+            AstElement::Plural { value, .. } => Ok(format!("%#@{}@", value)),
+            AstElement::Select { value, .. } => Ok(format!("%#@{}@", value)),
+            AstElement::Pound(_) => Ok("#".to_string()),
+            _ => Ok("".to_string()),
         }
     }
 }
@@ -79,17 +85,17 @@ mod test {
             value: "name1".to_string(),
             span: None,
         };
-        assert_eq!(formatter.format(&element), "%1$@");
+        assert_eq!(formatter.format(&element).unwrap(), "%1$@");
         let element = AstElement::Literal {
             value: "Hello, ".to_string(),
             span: None,
         };
-        assert_eq!(formatter.format(&element), "Hello, ");
+        assert_eq!(formatter.format(&element).unwrap(), "Hello, ");
         let element = AstElement::Argument {
             value: "name2".to_string(),
             span: None,
         };
-        assert_eq!(formatter.format(&element), "%2$@");
+        assert_eq!(formatter.format(&element).unwrap(), "%2$@");
     }
 
     #[test]
