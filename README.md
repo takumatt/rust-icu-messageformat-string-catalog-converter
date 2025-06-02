@@ -280,6 +280,53 @@ Error: Select elements are not supported by xcstrings. Found in key: 'user_statu
 - **Invalid JSON format**: Validate input JSON structure
 - **Unsupported ICU elements**: Some advanced ICU features may not be fully supported
 
+### Variable Validation
+
+This converter automatically validates that ICU MessageFormat variables are consistent across all languages for each key. This prevents runtime crashes and data inconsistencies.
+
+**Validation Rules:**
+- ✅ **Variable count must match** across all languages
+- ✅ **Variable names must be identical** across all languages  
+- ✅ **Variable types are preserved** (arguments, numbers, dates, plurals, selects)
+
+**Example Error Cases:**
+
+**Variable Count Mismatch:**
+```json
+{
+  "key": "greeting",
+  "messages": {
+    "en": { "value": "Hello {name} and {age}!" },
+    "ja": { "value": "こんにちは {name} さん！" }
+  }
+}
+```
+❌ Error: `Variable count mismatch in key 'greeting'. Language 'ja' has 1 variables, but expected 2`
+
+**Variable Name Mismatch:**
+```json
+{
+  "key": "greeting", 
+  "messages": {
+    "en": { "value": "Hello {firstName}!" },
+    "ja": { "value": "こんにちは {lastName} さん！" }
+  }
+}
+```
+❌ Error: `Variable name mismatch in key 'greeting'. Language 'ja' contains variable 'lastName' which is not found in other languages. Expected variables: ["firstName"]`
+
+**Correct Usage:**
+```json
+{
+  "key": "greeting",
+  "messages": {
+    "en": { "value": "Hello {name} and {age}!" },
+    "ja": { "value": "こんにちは {name} さん、{age} 歳ですね！" }
+  }
+}
+```
+✅ Success: Both languages use the same variables `{name}` and `{age}`
+
 ## Contributing
 
 1. Fork the repository

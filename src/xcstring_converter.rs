@@ -124,13 +124,18 @@ impl XCStringConverter {
             match element {
                 icu_messageformat_parser::AstElement::Argument { value, .. } |
                 icu_messageformat_parser::AstElement::Number { value, .. } |
-                icu_messageformat_parser::AstElement::Date { value, .. } |
-                icu_messageformat_parser::AstElement::Plural { value, .. } |
-                icu_messageformat_parser::AstElement::Select { value, .. } => {
+                icu_messageformat_parser::AstElement::Date { value, .. } => {
                     variables.insert(value.clone());
                 }
-                icu_messageformat_parser::AstElement::Plural { options, .. } |
-                icu_messageformat_parser::AstElement::Select { options, .. } => {
+                icu_messageformat_parser::AstElement::Plural { value, options, .. } => {
+                    variables.insert(value.clone());
+                    // plural/selectの内部要素からも変数を収集
+                    for (_, option) in &options.0 {
+                        self.collect_variables_from_ast(&option.value, variables);
+                    }
+                }
+                icu_messageformat_parser::AstElement::Select { value, options, .. } => {
+                    variables.insert(value.clone());
                     // plural/selectの内部要素からも変数を収集
                     for (_, option) in &options.0 {
                         self.collect_variables_from_ast(&option.value, variables);
@@ -351,4 +356,76 @@ mod tests {
             super::xcstrings::LocalizationState::Translated
         );
     }
+
+    #[test]
+    fn test_variable_count_mismatch() {
+        let mut messages = LinkedHashMap::new();
+        messages.insert(
+            "en".to_string(),
+            LocalizableICUMessageValue {
+                value: "Hello {name} and {age}!".to_string(),
+                state: "translated".to_string(),
+            },
+        );
+        messages.insert(
+            "ja".to_string(),
+            LocalizableICUMessageValue {
+                value: "こんにちは {name} さん！".to_string(),
+                state: "translated".to_string(),
+            },
+        );
+
+        let message = super::models::LocalizableICUMessage {
+            key: "inconsistent_test".to_string(),
+            messages,
+            comment: Some("Test case with inconsistent variable count".to_string()),
+        };
+        let converter = super::XCStringConverter::new(
+            "en".to_string(),
+            ConverterOptions::default(),
+            icu_messageformat_parser::ParserOptions::default(),
+        );
+        let result = converter.convert(vec![message]);
+        assert!(result.is_err());
+        let error_message = result.unwrap_err();
+        assert!(error_message.contains("Variable count mismatch"));
+        assert!(error_message.contains("inconsistent_test"));
+    }
+
+    #[test]
+    fn test_variable_name_mismatch() {
+        let mut messages = LinkedHashMap::new();
+        messages.insert(
+            "en".to_string(),
+            LocalizableICUMessageValue {
+                value: "Hello {firstName}!".to_string(),
+                state: "translated".to_string(),
+            },
+        );
+        messages.insert(
+            "ja".to_string(),
+            LocalizableICUMessageValue {
+                value: "こんにちは {lastName} さん！".to_string(),
+                state: "translated".to_string(),
+            },
+        );
+
+        let message = super::models::LocalizableICUMessage {
+            key: "wrong_variable_names".to_string(),
+            messages,
+            comment: Some("Test case with different variable names".to_string()),
+        };
+        let converter = super::XCStringConverter::new(
+            "en".to_string(),
+            ConverterOptions::default(),
+            icu_messageformat_parser::ParserOptions::default(),
+        );
+        let result = converter.convert(vec![message]);
+        assert!(result.is_err());
+        let error_message = result.unwrap_err();
+        assert!(error_message.contains("Variable name mismatch"));
+        assert!(error_message.contains("lastName"));
+        assert!(error_message.contains("firstName"));
+    }
 }
+
