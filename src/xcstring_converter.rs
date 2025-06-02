@@ -34,6 +34,11 @@ impl XCStringConverter {
         };
         
         for message in messages.iter() {
+            // 変数の一貫性をチェック
+            if let Err(error) = self.validate_variable_consistency(message) {
+                return Err(error);
+            }
+            
             if self.has_select_elements(message) {
                 if self.converter_options.split_select_elements {
                     // select要素を分割
@@ -54,6 +59,86 @@ impl XCStringConverter {
         }
         
         Ok(xcstrings)
+    }
+
+    fn validate_variable_consistency(&self, message: &models::LocalizableICUMessage) -> Result<(), String> {
+        let mut reference_variables: Option<std::collections::HashSet<String>> = None;
+        
+        for (locale, msg_value) in &message.messages {
+            let variables = self.extract_variables(&msg_value.value)?;
+            
+            match &reference_variables {
+                None => {
+                    // 最初の言語の変数セットを基準とする
+                    reference_variables = Some(variables);
+                }
+                Some(ref_vars) => {
+                    // 変数の数と名前が一致するかチェック
+                    if variables.len() != ref_vars.len() {
+                        return Err(format!(
+                            "Variable count mismatch in key '{}'. Language '{}' has {} variables, but expected {}",
+                            message.key, locale, variables.len(), ref_vars.len()
+                        ));
+                    }
+                    
+                    // 変数名が一致するかチェック
+                    for var in &variables {
+                        if !ref_vars.contains(var) {
+                            return Err(format!(
+                                "Variable name mismatch in key '{}'. Language '{}' contains variable '{}' which is not found in other languages. Expected variables: {:?}",
+                                message.key, locale, var, ref_vars.iter().collect::<Vec<_>>()
+                            ));
+                        }
+                    }
+                    
+                    for var in ref_vars {
+                        if !variables.contains(var) {
+                            return Err(format!(
+                                "Missing variable in key '{}'. Language '{}' is missing variable '{}' which exists in other languages",
+                                message.key, locale, var
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+        
+        Ok(())
+    }
+    
+    fn extract_variables(&self, message_value: &str) -> Result<std::collections::HashSet<String>, String> {
+        let mut variables = std::collections::HashSet::new();
+        let mut parser = icu_messageformat_parser::Parser::new(message_value, &self.parser_options);
+        
+        match parser.parse() {
+            Ok(parsed) => {
+                self.collect_variables_from_ast(&parsed, &mut variables);
+                Ok(variables)
+            }
+            Err(e) => Err(format!("Failed to parse message '{}': {:?}", message_value, e))
+        }
+    }
+    
+    fn collect_variables_from_ast(&self, elements: &[icu_messageformat_parser::AstElement], variables: &mut std::collections::HashSet<String>) {
+        for element in elements {
+            match element {
+                icu_messageformat_parser::AstElement::Argument { value, .. } |
+                icu_messageformat_parser::AstElement::Number { value, .. } |
+                icu_messageformat_parser::AstElement::Date { value, .. } |
+                icu_messageformat_parser::AstElement::Plural { value, .. } |
+                icu_messageformat_parser::AstElement::Select { value, .. } => {
+                    variables.insert(value.clone());
+                }
+                icu_messageformat_parser::AstElement::Plural { options, .. } |
+                icu_messageformat_parser::AstElement::Select { options, .. } => {
+                    // plural/selectの内部要素からも変数を収集
+                    for (_, option) in &options.0 {
+                        self.collect_variables_from_ast(&option.value, variables);
+                    }
+                }
+                _ => {}
+            }
+        }
     }
 
     fn convert_message(
@@ -138,12 +223,12 @@ impl XCStringConverter {
         if let Ok(parsed) = parser.parse() {
             if let Some(select_element) = parsed.iter().find(|element| matches!(element, AstElement::Select { .. })) {
                 if let AstElement::Select { value: _, span: _, options } = select_element {
-                    for (case_key, case_option) in &options.0 {
+                    for (case_key, _) in &options.0 {
                         let new_key = format!("{}_{}", message.key, case_key);
                         let mut new_messages = LinkedHashMap::new();
                         
                         for (locale, msg_value) in &message.messages {
-                            let new_value = self.replace_select_with_case(&msg_value.value, case_key, &case_option.value);
+                            let new_value = self.replace_select_with_case(&msg_value.value, case_key);
                             new_messages.insert(locale.clone(), models::LocalizableICUMessageValue {
                                 value: new_value,
                                 state: msg_value.state.clone(),
@@ -167,15 +252,26 @@ impl XCStringConverter {
         }
     }
 
-    fn replace_select_with_case(&self, original_value: &str, _case_key: &str, case_value: &[AstElement]) -> String {
+    fn replace_select_with_case(&self, original_value: &str, case_key: &str) -> String {
         let mut parser = icu_messageformat_parser::Parser::new(original_value, &self.parser_options);
         if let Ok(parsed) = parser.parse() {
             let mut formatter = XCStringFormatter::new(FormatterMode::StringUnit);
             let replaced_elements: Vec<String> = parsed.iter().map(|element| {
                 match element {
-                    AstElement::Select { .. } => {
-                        // select要素を選択されたケースの値に置き換える
-                        case_value.iter().map(|e| formatter.format(e)).collect::<Vec<String>>().join("")
+                    AstElement::Select { options, .. } => {
+                        // この言語のselect要素から対応するケースを見つけて置換する
+                        let case_option = options.0.iter().find(|(key, _)| *key == case_key);
+                        if let Some((_, option)) = case_option {
+                            option.value.iter().map(|e| formatter.format(e)).collect::<Vec<String>>().join("")
+                        } else {
+                            // フォールバック: "other"ケースを探す
+                            let other_option = options.0.iter().find(|(key, _)| *key == "other");
+                            if let Some((_, option)) = other_option {
+                                option.value.iter().map(|e| formatter.format(e)).collect::<Vec<String>>().join("")
+                            } else {
+                                "".to_string()
+                            }
+                        }
                     },
                     _ => formatter.format(element)
                 }

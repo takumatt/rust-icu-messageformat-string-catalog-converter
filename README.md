@@ -50,26 +50,37 @@ cargo run -- --input input.json --output output.xcstrings --source-language ja
 | `--source-language` | `-s` | Source language code | Required | `en`, `ja`, `ko` |
 | `--version` | `-v` | xcstrings file version | `"1.0"` | `"1.0"` |
 | `--localization-state` | `-l` | Default localization state | `translated` | `translated`, `needs_review` |
+| `--split-select-elements` | | Split select elements into separate keys | `true` | `true`, `false` |
 
 #### Select Element Behavior
 
-The `split_select_elements` option is **not available as a CLI flag**. It's currently hardcoded to `true` in the CLI tool, meaning:
+Apple's String Catalog format doesn't natively support ICU MessageFormat's select elements. This converter provides a `--split-select-elements` option to control how select elements are handled:
 
-- **Select elements are always split** into separate string keys when using the CLI
-- **If you need to disable select splitting**, you must use the library programmatically in your own Rust code
+**When `--split-select-elements true` (default):**
+- ✅ Select elements are automatically split into separate string keys
+- Each select case becomes a separate key (e.g., `key_male`, `key_female`, `key_other`)
+- Compatible with xcstrings format
 
-**CLI Behavior:**
-- ✅ Select elements are automatically split into separate keys (e.g., `key_male`, `key_female`, `key_other`)
-- ❌ Cannot disable select splitting via command line
+**When `--split-select-elements false`:**
+- ❌ Conversion fails with an error if select elements are found
+- Useful for strict validation when select elements should not exist
 
-**Programmatic Usage:**
-If you need to control select splitting behavior, use the library directly:
+**Example:**
+```bash
+# Enable select splitting (default)
+cargo run -- -i input.json -o output.xcstrings -s en --split-select-elements true
 
-```rust
-let mut options = ConverterOptions::default();
-options.split_select_elements = false; // Disable splitting
+# Disable select splitting (will error if select elements exist)
+cargo run -- -i input.json -o output.xcstrings -s en --split-select-elements false
+```
 
-let converter = XCStringConverter::new(source_language, options, parser_options);
+**Example Transformation:**
+```
+Input:  "{gender, select, male {He} female {She} other {They}} is online"
+Output: Three separate keys:
+- user_status_male: "He is online"
+- user_status_female: "She is online" 
+- user_status_other: "They is online"
 ```
 
 ### Input Format

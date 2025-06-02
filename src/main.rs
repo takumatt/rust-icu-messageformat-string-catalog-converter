@@ -30,6 +30,10 @@ struct Args {
     /// The localization state for all strings (translated or needs_review)
     #[arg(short, long, value_name = "STATE", default_value = "translated")]
     localization_state: String,
+
+    /// Split select elements into separate keys (default: true)
+    #[arg(long, action = clap::ArgAction::Set, default_value = "true")]
+    split_select_elements: bool,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -46,6 +50,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "needs_review" => xcstrings::LocalizationState::NeedsReview,
         _ => return Err("Invalid localization state. Must be 'translated' or 'needs_review'".into()),
     };
+    options.split_select_elements = args.split_select_elements;
     
     let converter = xcstring_converter::XCStringConverter::new(
         args.source_language,
