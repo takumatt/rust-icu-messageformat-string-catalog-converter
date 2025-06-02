@@ -1,4 +1,3 @@
-use crate::xcstrings::{ExtractionState, LocalizationState};
 use linked_hash_map;
 use serde::Deserialize;
 
@@ -42,24 +41,8 @@ pub struct LocalizableICUMessage {
     pub comment: Option<String>,
 }
 
-#[derive(Clone, Debug)]
-pub struct ConverterOptions {
-    pub extraction_state: ExtractionState,
-    pub localization_state: LocalizationState,
-    pub split_select_elements: bool,
-}
-
-impl ConverterOptions {
-    #[inline]
-    pub fn default() -> ConverterOptions {
-        ConverterOptions {
-            extraction_state: ExtractionState::Manual,
-            localization_state: LocalizationState::Translated,
-            split_select_elements: true,
-        }
-    }
-}
-
+// Note: CrowdinString is kept here as it relates to message formats
+// TODO: Consider moving to a separate integration module if it grows
 #[derive(Clone, Debug)]
 pub struct CrowdinString {
     pub identifier: String,
@@ -68,4 +51,4 @@ pub struct CrowdinString {
     pub context: String,
     // pub labels: Option<Vec<String>>,
     pub max_length: Option<u32>,
-}
+} 

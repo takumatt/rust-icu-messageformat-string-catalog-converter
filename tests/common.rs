@@ -1,7 +1,7 @@
 use std::{fs, path::PathBuf};
 
 use rust_icu_messageformat_string_catalog_converter::models::{LocalizableICUMessage, LocalizableICUStrings};
-use rust_icu_messageformat_string_catalog_converter::xcstring_converter::XCStringConverter;
+use rust_icu_messageformat_string_catalog_converter::converter::XCStringConverter;
 use serde::Deserialize;
 use testing::fixture;
 

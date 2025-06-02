@@ -1,5 +1,5 @@
 use crate::{
-    xcstring_formatter::{FormatterMode, XCStringFormatter},
+    converter::formatter::{FormatterMode, XCStringFormatter},
     xcstrings::{self, StringUnit, Substitution, VariationType, VariationValue},
 };
 use icu_messageformat_parser::{self, AstElement};

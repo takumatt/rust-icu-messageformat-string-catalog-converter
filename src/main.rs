@@ -2,9 +2,7 @@ use clap::Parser;
 use std::fs;
 
 mod models;
-mod xcstring_converter;
-mod xcstring_formatter;
-mod xcstring_substitution_builder;
+mod converter;
 mod xcstrings;
 
 #[derive(Parser, Debug)]
@@ -52,7 +50,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
     options.split_select_elements = args.split_select_elements;
     
-    let converter = xcstring_converter::XCStringConverter::new(
+    let converter = converter::XCStringConverter::new(
         args.source_language,
         options,
         icu_messageformat_parser::ParserOptions::default(),
