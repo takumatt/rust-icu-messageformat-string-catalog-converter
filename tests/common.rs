@@ -18,8 +18,11 @@ struct FixtureOptions {
 }
 
 fn parse_fixture(file: PathBuf) -> Fixture {
-    let contents = fs::read_to_string(file).unwrap();
+    let contents = fs::read_to_string(file).expect("Failed to read test fixture file");
     let sections: Vec<String> = contents.split("---\n").map(|s| s.to_string()).collect();
+    if sections.len() < 3 {
+        panic!("Test fixture must have 3 sections separated by '---\\n'");
+    }
     Fixture {
         message: sections[0].clone(),
         options: sections[1].clone(),
@@ -35,8 +38,10 @@ fn parse_fixture(file: PathBuf) -> Fixture {
 #[fixture("tests/fixtures/select_splitting")]
 fn converter_tests(file: PathBuf) {
     let fixture_sections = parse_fixture(file);
-    let messages: LocalizableICUStrings = serde_json::from_str(&fixture_sections.message).unwrap();
-    let options: FixtureOptions = serde_json::from_str(&fixture_sections.options).unwrap();
+    let messages: LocalizableICUStrings = serde_json::from_str(&fixture_sections.message)
+        .expect("Failed to parse test fixture message JSON");
+    let options: FixtureOptions = serde_json::from_str(&fixture_sections.options)
+        .expect("Failed to parse test fixture options JSON");
     let output: String = fixture_sections.output;
     let converter = XCStringConverter::new(
         options.source_language,
@@ -44,8 +49,11 @@ fn converter_tests(file: PathBuf) {
         icu_messageformat_parser::ParserOptions::default(),
     );
     let messages: Vec<LocalizableICUMessage> = messages.strings.into_iter().map(|s| s.into()).collect();
-    let result = converter.convert(messages).unwrap();
-    let result_json_string = serde_json::to_string_pretty(&result).unwrap().trim().to_string();
+    let result = converter.convert(messages).expect("Failed to convert messages");
+    let result_json_string = serde_json::to_string_pretty(&result)
+        .expect("Failed to serialize result to JSON")
+        .trim()
+        .to_string();
     similar_asserts::assert_eq!(result_json_string, output.trim().to_string());
 }
 
@@ -63,7 +71,8 @@ fn test_select_error_case() {
         ]
     }"#;
     
-    let messages: LocalizableICUStrings = serde_json::from_str(messages_json).unwrap();
+    let messages: LocalizableICUStrings = serde_json::from_str(messages_json)
+        .expect("Failed to parse test JSON");
     let mut options = rust_icu_messageformat_string_catalog_converter::models::ConverterOptions::default();
     options.split_select_elements = false;
     

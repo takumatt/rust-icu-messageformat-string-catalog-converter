@@ -25,6 +25,51 @@ Output: Three separate keys:
 - user_status_other: "They is online"
 ```
 
+## ⚠️ Important Limitations and Edge Cases
+
+### Special Characters and Escaping
+
+ICU MessageFormat requires special handling for certain characters:
+
+**Problem Characters:**
+- Empty curly braces `{}` are interpreted as empty arguments (invalid)
+- Unescaped curly braces in literal text cause parsing errors
+
+**Solution - Use ICU Escaping:**
+```json
+// ❌ Wrong - will cause parsing errors
+{
+  "value": "Special chars: {}"
+}
+
+// ✅ Correct - properly escaped
+{
+  "value": "Special chars: '{'}'}'"
+}
+```
+
+**ICU Escaping Rules:**
+- Literal curly braces: `'{'` and `'}'`
+- Literal single quotes: `''`
+
+### Variable Consistency Validation
+
+This converter validates that all languages use the same variable names and counts:
+
+```json
+// ❌ Will fail validation
+{
+  "en": { "value": "Hello {name} and {age}!" },
+  "ja": { "value": "こんにちは {name} さん!" }  // Missing {age}
+}
+
+// ✅ Correct - consistent variables
+{
+  "en": { "value": "Hello {name}!" },
+  "ja": { "value": "こんにちは {name} さん!" }
+}
+```
+
 ## Installation
 
 ```bash
