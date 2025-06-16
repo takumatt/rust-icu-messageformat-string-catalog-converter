@@ -45,17 +45,22 @@ jobs:
 
       - name: List build artifacts
         if: matrix.os != 'windows-latest'
-        run: ls -la target/${{ matrix.target }}/release/
+        run: |
+          echo "Listing build artifacts for ${{ matrix.os }}"
+          ls -la target/${{ matrix.target }}/release/
 
       - name: List build artifacts (Windows)
         if: matrix.os == 'windows-latest'
-        run: dir target\${{ matrix.target }}\release
+        run: |
+          echo "Listing build artifacts for Windows"
+          dir target\${{ matrix.target }}\release
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
           path: target/${{ matrix.target }}/release/rust-icu-messageformat-string-catalog-converter${{ matrix.target == 'x86_64-pc-windows-msvc' && '.exe' || '' }}
+          if-no-files-found: error
 
   release:
     name: Create Release
@@ -70,9 +75,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts
+          if-no-files-found: error
 
       - name: List downloaded artifacts
-        run: ls -la artifacts/
+        run: |
+          echo "Listing downloaded artifacts"
+          ls -la artifacts/
 
       - name: Create Release
         id: create_release
@@ -83,5 +91,7 @@ jobs:
             artifacts/rust-icu-messageformat-string-catalog-converter-macos-x86_64
             artifacts/rust-icu-messageformat-string-catalog-converter-macos-aarch64
             artifacts/rust-icu-messageformat-string-catalog-converter-windows-x86_64.exe
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
