@@ -39,6 +39,10 @@ jobs:
       - name: Build
         run: cargo build --release --target ${{ matrix.target }}
 
+      - name: Set binary permissions
+        if: matrix.os != 'windows-latest'
+        run: chmod +x target/${{ matrix.target }}/release/rust-icu-messageformat-string-catalog-converter
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
