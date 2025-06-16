@@ -43,6 +43,9 @@ jobs:
         if: matrix.os != 'windows-latest'
         run: chmod +x target/${{ matrix.target }}/release/rust-icu-messageformat-string-catalog-converter
 
+      - name: List build artifacts
+        run: ls -la target/${{ matrix.target }}/release/
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -53,6 +56,8 @@ jobs:
     name: Create Release
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -60,6 +65,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts
+
+      - name: List downloaded artifacts
+        run: ls -la artifacts/
 
       - name: Create Release
         id: create_release
