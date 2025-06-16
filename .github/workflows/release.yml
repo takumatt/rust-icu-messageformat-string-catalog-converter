@@ -44,7 +44,12 @@ jobs:
         run: chmod +x target/${{ matrix.target }}/release/rust-icu-messageformat-string-catalog-converter
 
       - name: List build artifacts
+        if: matrix.os != 'windows-latest'
         run: ls -la target/${{ matrix.target }}/release/
+
+      - name: List build artifacts (Windows)
+        if: matrix.os == 'windows-latest'
+        run: dir target\${{ matrix.target }}\release
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
