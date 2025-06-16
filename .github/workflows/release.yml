@@ -87,10 +87,10 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            artifacts/rust-icu-messageformat-string-catalog-converter-linux-x86_64
-            artifacts/rust-icu-messageformat-string-catalog-converter-macos-x86_64
-            artifacts/rust-icu-messageformat-string-catalog-converter-macos-aarch64
-            artifacts/rust-icu-messageformat-string-catalog-converter-windows-x86_64.exe
+            artifacts/rust-icu-messageformat-string-catalog-converter-linux-x86_64/rust-icu-messageformat-string-catalog-converter-linux-x86_64
+            artifacts/rust-icu-messageformat-string-catalog-converter-macos-x86_64/rust-icu-messageformat-string-catalog-converter-macos-x86_64
+            artifacts/rust-icu-messageformat-string-catalog-converter-macos-aarch64/rust-icu-messageformat-string-catalog-converter-macos-aarch64
+            artifacts/rust-icu-messageformat-string-catalog-converter-windows-x86_64.exe/rust-icu-messageformat-string-catalog-converter-windows-x86_64.exe
           draft: false
           prerelease: false
         env:
