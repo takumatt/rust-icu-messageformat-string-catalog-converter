@@ -55,11 +55,19 @@ jobs:
           echo "Listing build artifacts for Windows"
           dir target\${{ matrix.target }}\release
 
+      - name: Archive binary (zip)
+        if: matrix.os != 'windows-latest'
+        run: zip ${{ matrix.artifact_name }}.zip target/${{ matrix.target }}/release/rust-icu-messageformat-string-catalog-converter
+
+      - name: Archive binary (zip, Windows)
+        if: matrix.os == 'windows-latest'
+        run: powershell Compress-Archive -Path target\${{ matrix.target }}\release\rust-icu-messageformat-string-catalog-converter.exe -DestinationPath ${{ matrix.artifact_name }}.zip
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact_name }}
-          path: target/${{ matrix.target }}/release/rust-icu-messageformat-string-catalog-converter${{ matrix.target == 'x86_64-pc-windows-msvc' && '.exe' || '' }}
+          name: ${{ matrix.artifact_name }}.zip
+          path: ${{ matrix.artifact_name }}.zip
           if-no-files-found: error
 
   release:
@@ -87,10 +95,10 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            artifacts/rust-icu-messageformat-string-catalog-converter-linux-x86_64/rust-icu-messageformat-string-catalog-converter
-            artifacts/rust-icu-messageformat-string-catalog-converter-macos-x86_64/rust-icu-messageformat-string-catalog-converter
-            artifacts/rust-icu-messageformat-string-catalog-converter-macos-aarch64/rust-icu-messageformat-string-catalog-converter
-            artifacts/rust-icu-messageformat-string-catalog-converter-windows-x86_64.exe/rust-icu-messageformat-string-catalog-converter.exe
+            artifacts/rust-icu-messageformat-string-catalog-converter-linux-x86_64.zip/rust-icu-messageformat-string-catalog-converter-linux-x86_64.zip
+            artifacts/rust-icu-messageformat-string-catalog-converter-macos-x86_64.zip/rust-icu-messageformat-string-catalog-converter-macos-x86_64.zip
+            artifacts/rust-icu-messageformat-string-catalog-converter-macos-aarch64.zip/rust-icu-messageformat-string-catalog-converter-macos-aarch64.zip
+            artifacts/rust-icu-messageformat-string-catalog-converter-windows-x86_64.exe.zip/rust-icu-messageformat-string-catalog-converter-windows-x86_64.exe.zip
           draft: false
           prerelease: false
         env:
