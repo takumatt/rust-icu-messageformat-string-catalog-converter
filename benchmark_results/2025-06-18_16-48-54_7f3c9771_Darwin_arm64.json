@@ -1,19 +1,19 @@
 {
   "metadata": {
-    "date": "2025-06-18_15-59-45",
-    "commit_hash": "325b2da8d516426f36af3b3c78aba1d23f7c0816",
-    "commit_short": "325b2da8",
+    "date": "2025-06-18_16-48-54",
+    "commit_hash": "7f3c9771fcbcaeb7bc71855ff6994cf279c5fffc",
+    "commit_short": "7f3c9771",
     "machine": "Darwin_arm64",
     "rust_version": "1.87.0",
     "cargo_version": "1.87.0"
   },
   "benchmarks": {
     "formatter": {
-      "format_single_argument_ns": 0,
-      "format_literal_ns": 0,
+      "format_single_argument_ns": 50.938,
+      "format_literal_ns": 24.542,
       "format_number_ns": 0,
       "format_batch_small_ns": 0,
-      "format_batch_large_us": 0,
+      "format_batch_large_us": 9.7919,
       "get_or_insert_position_ns": 0,
       "formatter_string_unit_mode_ns": 0,
       "formatter_plural_mode_ns": 0,
@@ -22,9 +22,9 @@
       "argument_position_tracking_100_us": 0
     },
     "large_file": {
-      "convert_1000_strings_ms": 0,
-      "convert_5000_strings_ms": 0,
-      "convert_10000_strings_ms": 0,
+      "convert_1000_strings_ms": .00001446100000000000,
+      "convert_5000_strings_ms": .00007522300000000000,
+      "convert_10000_strings_ms": .00015122000000000000,
       "convert_1000_strings_with_plurals_ms": 0,
       "convert_1000_strings_with_selects_ms": 0,
       "convert_1000_strings_mixed_content_ms": 0,

@@ -44,23 +44,40 @@ echo "📊 Running large file benchmarks..."
 LARGE_FILE_OUTPUT=$(cargo bench --bench large_file_benchmark 2>&1)
 
 # 結果を手動で抽出（Criterionの出力から）
-FORMATTER_SINGLE_ARG=$(echo "$FORMATTER_OUTPUT" | grep "format_single_argument" | grep -oE "time: \[[0-9.]+ [a-z]+ [0-9.]+ [a-z]+\]" | head -1 | grep -oE "[0-9.]+" | head -1)
-FORMATTER_LITERAL=$(echo "$FORMATTER_OUTPUT" | grep "format_literal" | grep -oE "time: \[[0-9.]+ [a-z]+ [0-9.]+ [a-z]+\]" | head -1 | grep -oE "[0-9.]+" | head -1)
-FORMATTER_BATCH_LARGE=$(echo "$FORMATTER_OUTPUT" | grep "format_batch_large" | grep -oE "time: \[[0-9.]+ [a-z]+ [0-9.]+ [a-z]+\]" | head -1 | grep -oE "[0-9.]+" | head -1)
+# より堅牢なパース方法
+extract_benchmark_value() {
+    local output="$1"
+    local benchmark_name="$2"
+    local unit="$3"
+    
+    # Criterionの出力から値を抽出（より簡単な方法）
+    local value=$(echo "$output" | grep "$benchmark_name" | grep "time:" | grep -oE "[0-9]+\.[0-9]+" | head -1)
+    
+    # 単位変換
+    if [ "$unit" = "ns" ] && echo "$output" | grep -q "$benchmark_name.*μs"; then
+        # μsをnsに変換
+        value=$(echo "$value * 1000" | bc -l 2>/dev/null || echo "0")
+    elif [ "$unit" = "ms" ] && echo "$output" | grep -q "$benchmark_name.*μs"; then
+        # μsをmsに変換
+        value=$(echo "$value / 1000" | bc -l 2>/dev/null || echo "0")
+    elif [ "$unit" = "ms" ] && echo "$output" | grep -q "$benchmark_name.*ns"; then
+        # nsをmsに変換
+        value=$(echo "$value / 1000000" | bc -l 2>/dev/null || echo "0")
+    fi
+    
+    echo "${value:-0}"
+}
 
-LARGE_1000=$(echo "$LARGE_FILE_OUTPUT" | grep "convert_1000_strings" | grep -oE "time: \[[0-9.]+ [a-z]+ [0-9.]+ [a-z]+\]" | head -1 | grep -oE "[0-9.]+" | head -1)
-LARGE_5000=$(echo "$LARGE_FILE_OUTPUT" | grep "convert_5000_strings" | grep -oE "time: \[[0-9.]+ [a-z]+ [0-9.]+ [a-z]+\]" | head -1 | grep -oE "[0-9.]+" | head -1)
-LARGE_10000=$(echo "$LARGE_FILE_OUTPUT" | grep "convert_10000_strings" | grep -oE "time: \[[0-9.]+ [a-z]+ [0-9.]+ [a-z]+\]" | head -1 | grep -oE "[0-9.]+" | head -1)
-LARGE_SERIALIZE=$(echo "$LARGE_FILE_OUTPUT" | grep "serialize_5000_strings_to_json" | grep -oE "time: \[[0-9.]+ [a-z]+ [0-9.]+ [a-z]+\]" | head -1 | grep -oE "[0-9.]+" | head -1)
+# フォーマッターベンチマーク結果を抽出
+FORMATTER_SINGLE_ARG=$(extract_benchmark_value "$FORMATTER_OUTPUT" "format_single_argument" "ns")
+FORMATTER_LITERAL=$(extract_benchmark_value "$FORMATTER_OUTPUT" "format_literal" "ns")
+FORMATTER_BATCH_LARGE=$(extract_benchmark_value "$FORMATTER_OUTPUT" "format_batch_large" "us")
 
-# デフォルト値を設定
-FORMATTER_SINGLE_ARG=${FORMATTER_SINGLE_ARG:-0}
-FORMATTER_LITERAL=${FORMATTER_LITERAL:-0}
-FORMATTER_BATCH_LARGE=${FORMATTER_BATCH_LARGE:-0}
-LARGE_1000=${LARGE_1000:-0}
-LARGE_5000=${LARGE_5000:-0}
-LARGE_10000=${LARGE_10000:-0}
-LARGE_SERIALIZE=${LARGE_SERIALIZE:-0}
+# 大規模ファイルベンチマーク結果を抽出
+LARGE_1000=$(extract_benchmark_value "$LARGE_FILE_OUTPUT" "convert_1000_strings" "ms")
+LARGE_5000=$(extract_benchmark_value "$LARGE_FILE_OUTPUT" "convert_5000_strings" "ms")
+LARGE_10000=$(extract_benchmark_value "$LARGE_FILE_OUTPUT" "convert_10000_strings" "ms")
+LARGE_SERIALIZE=$(extract_benchmark_value "$LARGE_FILE_OUTPUT" "serialize_5000_strings_to_json" "ms")
 
 # 結果をJSONに追加
 cat >> "$RESULT_FILE" << EOF
