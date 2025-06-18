@@ -2,6 +2,7 @@ use crate::xcstrings::{ExtractionState, LocalizationState};
 
 #[derive(Clone, Debug)]
 pub struct ConverterOptions {
+    #[allow(dead_code)]
     pub extraction_state: ExtractionState,
     pub localization_state: LocalizationState,
     pub split_select_elements: bool,
