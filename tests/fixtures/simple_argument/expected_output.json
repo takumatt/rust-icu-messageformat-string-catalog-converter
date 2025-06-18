@@ -1,21 +1,3 @@
-{ 
-  "strings": [
-    {
-      "key": "hello",
-      "messages": {
-        "ja": { "value": "こんにちは {your_name}、私は {my_name} です。", "state": "translated" },
-        "en": { "value": "Hello {your_name}, I'm {my_name}.", "state": "translated" },
-        "ko": { "value": "안녕하세요 {your_name}, 저는 {my_name} 입니다.", "state": "translated" }
-      },
-      "comment": "A greeting message with both the user's name and speaker's name"
-    }
-  ]
-}
----
-{ 
-  "source_language": "ja"
-}
----
 {
   "sourceLanguage": "ja",
   "strings": {
@@ -44,4 +26,4 @@
     }
   },
   "version": "1.0"
-}
+} 

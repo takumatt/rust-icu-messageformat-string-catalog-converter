@@ -1,0 +1,11 @@
+{ 
+  "strings": [
+    {
+      "key": "user_status",
+      "messages": {
+        "en": { "value": "{gender, select, male {He} female {She} other {They}} is online.", "state": "translated" }
+      },
+      "comment": "User online status with gender selection"
+    }
+  ]
+} 

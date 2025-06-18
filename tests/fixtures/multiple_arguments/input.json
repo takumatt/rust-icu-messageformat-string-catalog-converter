@@ -1,0 +1,11 @@
+{
+  "strings": [
+    {
+      "key": "multiple_args",
+      "messages": {
+        "en": { "value": "Hello, {first} and {second}!", "state": "translated" }
+      },
+      "comment": "A message with multiple arguments"
+    }
+  ]
+} 

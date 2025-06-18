@@ -1,20 +1,4 @@
 {
-  "strings": [
-    {
-      "key": "multiple_args",
-      "messages": {
-        "en": { "value": "Hello, {first} and {second}!", "state": "translated" }
-      },
-      "comment": "A message with multiple arguments"
-    }
-  ]
-}
----
-{
-  "source_language": "en"
-}
----
-{
   "sourceLanguage": "en",
   "strings": {
     "multiple_args": {

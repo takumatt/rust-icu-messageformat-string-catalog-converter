@@ -1,28 +1,3 @@
-{ 
-  "strings": [
-    {
-      "key": "greeting",
-      "messages": {
-        "ja": { "value": "こんにちは {name} さん", "state": "translated" },
-        "en": { "value": "Hello {name}", "state": "translated" }
-      },
-      "comment": "A greeting message with the user's name"
-    },
-    {
-      "key": "fruit_count",
-      "messages": {
-        "ja": { "value": "{ count, plural, other {{count}個の果物があります} }", "state": "translated" },
-        "en": { "value": "{ count, plural, one {There is one fruit} other {There are {count} fruits} }", "state": "translated" }
-      },
-      "comment": "Shows the number of fruits with pluralization"
-    }
-  ]
-}
----
-{ 
-  "source_language": "ja"
-}
----
 {
   "sourceLanguage": "ja",
   "strings": {
@@ -100,4 +75,4 @@
     }
   },
   "version": "1.0"
-}
+} 

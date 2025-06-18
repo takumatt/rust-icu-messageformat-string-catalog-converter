@@ -1,0 +1,12 @@
+{ 
+  "strings": [
+    {
+      "key": "apple_count",
+      "messages": {
+        "ja": { "value": "私はりんごを{ count, plural, other {{count}}}個持っています。", "state": "translated" },
+        "en": { "value": "I have { count, plural, one {an apple} other {{count} apples} }.", "state": "translated" }
+      },
+      "comment": "Shows the number of apples with pluralization"
+    }
+  ]
+} 
