@@ -24,45 +24,18 @@ impl XCStringFormatter {
         match &element {
             AstElement::Literal { value, .. } => Ok(value.to_string()),
             AstElement::Argument { value, .. } => {
-                if !self.argument_positions.contains(value) {
-                    self.argument_positions.insert(value.to_string());
-                }
-                let index = self
-                    .argument_positions
-                    .iter()
-                    .position(|x| x.eq(value))
-                    .ok_or_else(|| format!("Failed to find position for argument '{}'", value))?;
-                let position = index.checked_add(1)
-                    .ok_or_else(|| format!("Position overflow for argument '{}'", value))?;
+                let position = self.get_or_insert_position(value)?;
                 match self.formatter_mode {
                     FormatterMode::StringUnit => Ok(format!("%{}$@", position)),
                     FormatterMode::Plural => Ok(format!("%arg")),
                 }
             }
             AstElement::Number { value, .. } => {
-                if !self.argument_positions.contains(value) {
-                    self.argument_positions.insert(value.to_string());
-                }
-                let index = self
-                    .argument_positions
-                    .iter()
-                    .position(|x| x == value)
-                    .ok_or_else(|| format!("Failed to find position for number '{}'", value))?;
-                let position = index.checked_add(1)
-                    .ok_or_else(|| format!("Position overflow for number '{}'", value))?;
+                let position = self.get_or_insert_position(value)?;
                 Ok(format!("%{}$lld", position))
             }
             AstElement::Date { value, .. } => {
-                if !self.argument_positions.contains(value) {
-                    self.argument_positions.insert(value.to_string());
-                }
-                let index = self
-                    .argument_positions
-                    .iter()
-                    .position(|x| x == value)
-                    .ok_or_else(|| format!("Failed to find position for date '{}'", value))?;
-                let position = index.checked_add(1)
-                    .ok_or_else(|| format!("Position overflow for date '{}'", value))?;
+                let position = self.get_or_insert_position(value)?;
                 Ok(format!("%{}$@", position))
             }
             AstElement::Plural { value, .. } => Ok(format!("%#@{}@", value)),
@@ -70,6 +43,39 @@ impl XCStringFormatter {
             AstElement::Pound(_) => Ok("#".to_string()),
             _ => Ok("".to_string()),
         }
+    }
+
+    fn get_or_insert_position(&mut self, value: &str) -> Result<usize, String> {
+        if !self.argument_positions.contains(value) {
+            self.argument_positions.insert(value.to_string());
+        }
+        
+        let index = self
+            .argument_positions
+            .iter()
+            .position(|x| x == value)
+            .ok_or_else(|| format!("Failed to find position for argument '{}'", value))?;
+        
+        let position = index.checked_add(1)
+            .ok_or_else(|| format!("Position overflow for argument '{}'", value))?;
+        
+        Ok(position)
+    }
+
+    pub fn format_batch(&mut self, elements: &[AstElement]) -> Result<String, String> {
+        let mut result = String::with_capacity(elements.len() * 10);
+        
+        for element in elements {
+            result.push_str(&self.format(element)?);
+        }
+        
+        Ok(result)
+    }
+
+    pub fn format_with_capacity(&mut self, element: &AstElement, capacity: usize) -> Result<String, String> {
+        let mut result = String::with_capacity(capacity);
+        result.push_str(&self.format(element)?);
+        Ok(result)
     }
 }
 
@@ -96,6 +102,26 @@ mod test {
             span: None,
         };
         assert_eq!(formatter.format(&element).unwrap(), "%2$@");
+    }
+
+    #[test]
+    fn test_format_batch() {
+        let mut formatter = super::XCStringFormatter::new(super::FormatterMode::StringUnit);
+        let elements = vec![
+            AstElement::Literal {
+                value: "Hello, ".to_string(),
+                span: None,
+            },
+            AstElement::Argument {
+                value: "name1".to_string(),
+                span: None,
+            },
+            AstElement::Literal {
+                value: "!".to_string(),
+                span: None,
+            },
+        ];
+        assert_eq!(formatter.format_batch(&elements).unwrap(), "Hello, %1$@!");
     }
 
     #[test]

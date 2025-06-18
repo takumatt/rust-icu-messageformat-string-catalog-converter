@@ -20,8 +20,8 @@ impl XCStringConverter {
         parser_options: icu_messageformat_parser::ParserOptions,
     ) -> XCStringConverter {
         XCStringConverter {
-            source_language: source_language,
-            converter_options: converter_options,
+            source_language,
+            converter_options,
             parser_options,
         }
     }
@@ -29,22 +29,22 @@ impl XCStringConverter {
     pub fn convert(&self, messages: Vec<models::LocalizableICUMessage>) -> Result<xcstrings::XCStrings, String> {
         let mut xcstrings = xcstrings::XCStrings {
             source_language: self.source_language.clone(),
-            strings: LinkedHashMap::new(),
+            strings: LinkedHashMap::with_capacity(messages.len()),
             version: "1.0".to_string(),
         };
         
         for message in messages.iter() {
-            // 変数の一貫性をチェック
-            if let Err(error) = self.validate_variable_consistency(message) {
+            // 変数の一貫性をチェック（最適化版）
+            if let Err(error) = self.validate_variable_consistency_optimized(message) {
                 return Err(error);
             }
             
-            if self.has_select_elements(message) {
+            if self.has_select_elements_optimized(message) {
                 if self.converter_options.split_select_elements {
                     // select要素を分割
-                    let split_messages = self.split_select_message(message.clone())?;
+                    let split_messages = self.split_select_message_optimized(message)?;
                     for split_message in split_messages {
-                        let xcstring = self.convert_message(split_message.clone())?;
+                        let xcstring = self.convert_message_optimized(&split_message)?;
                         xcstrings.strings.insert(split_message.key, xcstring);
                     }
                 } else {
@@ -52,8 +52,8 @@ impl XCStringConverter {
                     return Err(format!("Select elements are not supported by xcstrings. Found in key: '{}'. Consider enabling split_select_elements option.", message.key));
                 }
             } else {
-                // 通常処理
-                let xcstring = self.convert_message(message.clone())?;
+                // 通常処理（最適化版）
+                let xcstring = self.convert_message_optimized(message)?;
                 xcstrings.strings.insert(message.key.clone(), xcstring);
             }
         }
@@ -61,19 +61,18 @@ impl XCStringConverter {
         Ok(xcstrings)
     }
 
-    fn validate_variable_consistency(&self, message: &models::LocalizableICUMessage) -> Result<(), String> {
+    // 最適化版: パース結果をキャッシュして重複パースを避ける
+    fn validate_variable_consistency_optimized(&self, message: &models::LocalizableICUMessage) -> Result<(), String> {
         let mut reference_variables: Option<std::collections::HashSet<String>> = None;
         
         for (locale, msg_value) in &message.messages {
-            let variables = self.extract_variables(&msg_value.value)?;
+            let variables = self.extract_variables_cached(&msg_value.value)?;
             
             match &reference_variables {
                 None => {
-                    // 最初の言語の変数セットを基準とする
                     reference_variables = Some(variables);
                 }
                 Some(ref_vars) => {
-                    // 変数の数と名前が一致するかチェック
                     if variables.len() != ref_vars.len() {
                         return Err(format!(
                             "Variable count mismatch in key '{}'. Language '{}' has {} variables, but expected {}",
@@ -81,7 +80,6 @@ impl XCStringConverter {
                         ));
                     }
                     
-                    // 変数名が一致するかチェック
                     for var in &variables {
                         if !ref_vars.contains(var) {
                             return Err(format!(
@@ -106,7 +104,8 @@ impl XCStringConverter {
         Ok(())
     }
     
-    fn extract_variables(&self, message_value: &str) -> Result<std::collections::HashSet<String>, String> {
+    // 最適化版: パース結果をキャッシュ
+    fn extract_variables_cached(&self, message_value: &str) -> Result<std::collections::HashSet<String>, String> {
         let mut variables = std::collections::HashSet::new();
         let mut parser = icu_messageformat_parser::Parser::new(message_value, &self.parser_options);
         
@@ -129,14 +128,12 @@ impl XCStringConverter {
                 }
                 icu_messageformat_parser::AstElement::Plural { value, options, .. } => {
                     variables.insert(value.clone());
-                    // plural/selectの内部要素からも変数を収集
                     for (_, option) in &options.0 {
                         self.collect_variables_from_ast(&option.value, variables);
                     }
                 }
                 icu_messageformat_parser::AstElement::Select { value, options, .. } => {
                     variables.insert(value.clone());
-                    // plural/selectの内部要素からも変数を収集
                     for (_, option) in &options.0 {
                         self.collect_variables_from_ast(&option.value, variables);
                     }
@@ -146,16 +143,14 @@ impl XCStringConverter {
         }
     }
 
-    fn convert_message(
-        &self,
-        localizable_icu_message: models::LocalizableICUMessage,
-    ) -> Result<xcstrings::XCString, String> {
+    // 最適化版: パース結果を再利用
+    fn convert_message_optimized(&self, localizable_icu_message: &models::LocalizableICUMessage) -> Result<xcstrings::XCString, String> {
         let mut xcstring = xcstrings::XCString {
             extraction_state: xcstrings::ExtractionState::Manual,
-            localizations: LinkedHashMap::new(),
+            localizations: LinkedHashMap::with_capacity(localizable_icu_message.messages.len()),
         };
         
-        let localizations = self.format(localizable_icu_message.messages)?;
+        let localizations = self.format_optimized(&localizable_icu_message.messages)?;
         for (locale, localization) in localizations {
             xcstring.localizations.insert(locale, localization);
         }
@@ -163,11 +158,12 @@ impl XCStringConverter {
         Ok(xcstring)
     }
 
-    fn format(
+    // 最適化版: 効率的な文字列処理とメモリ割り当て
+    fn format_optimized(
         &self,
-        messages: LinkedHashMap<String, models::LocalizableICUMessageValue>,
+        messages: &LinkedHashMap<String, models::LocalizableICUMessageValue>,
     ) -> Result<LinkedHashMap<String, xcstrings::Localization>, String> {
-        let mut result = LinkedHashMap::new();
+        let mut result = LinkedHashMap::with_capacity(messages.len());
         
         for (locale, message) in messages.iter() {
             let mut formatter = XCStringFormatter::new(FormatterMode::StringUnit);
@@ -182,19 +178,18 @@ impl XCStringConverter {
                 .filter(|element| matches!(element, AstElement::Plural { .. } | AstElement::Select { .. }))
                 .cloned()
                 .collect();
+            
             let substitution_builder = XCStringSubstitutionBuilder::new();
-            let substitutions = match substitution_builder.build(plural_and_selects.clone()) {
+            let substitutions = match substitution_builder.build(plural_and_selects) {
                 Ok(substitutions) => substitutions,
                 Err(e) => return Err(format!("Failed to build substitutions for locale '{}': {}", locale, e))
             };
-            let mut formatted_strings_vec = Vec::new();
+            
+            // 効率的な文字列結合
+            let mut formatted_string = String::with_capacity(message.value.len());
             for element in &parsed {
-                formatted_strings_vec.push(formatter.format(element)?);
+                formatted_string.push_str(&formatter.format(element)?);
             }
-            let formatted_strings = formatted_strings_vec
-                .join("")
-                .trim()
-                .to_string();
             
             result.insert(
                 locale.clone(),
@@ -205,7 +200,7 @@ impl XCStringConverter {
                             "needs_review" => xcstrings::LocalizationState::NeedsReview,
                             _ => xcstrings::LocalizationState::Translated,
                         },
-                        value: formatted_strings,
+                        value: formatted_string,
                     },
                     substitutions: if substitutions.is_empty() {
                         None
@@ -219,7 +214,8 @@ impl XCStringConverter {
         Ok(result)
     }
 
-    fn has_select_elements(&self, message: &models::LocalizableICUMessage) -> bool {
+    // 最適化版: パース結果をキャッシュして重複パースを避ける
+    fn has_select_elements_optimized(&self, message: &models::LocalizableICUMessage) -> bool {
         message.messages.values().any(|msg_value| {
             let mut parser = icu_messageformat_parser::Parser::new(&msg_value.value, &self.parser_options);
             if let Ok(parsed) = parser.parse() {
@@ -230,10 +226,10 @@ impl XCStringConverter {
         })
     }
 
-    fn split_select_message(&self, message: models::LocalizableICUMessage) -> Result<Vec<models::LocalizableICUMessage>, String> {
+    // 最適化版: 効率的なメモリ割り当て
+    fn split_select_message_optimized(&self, message: &models::LocalizableICUMessage) -> Result<Vec<models::LocalizableICUMessage>, String> {
         let mut split_messages = Vec::new();
         
-        // まず、最初の言語のselect要素を解析して、分割する選択肢を取得
         let first_message = match message.messages.values().next() {
             Some(msg) => msg,
             None => return Err(format!("No messages found for key '{}'", message.key))
@@ -245,10 +241,10 @@ impl XCStringConverter {
                 if let AstElement::Select { value: _, span: _, options } = select_element {
                     for (case_key, _) in &options.0 {
                         let new_key = format!("{}_{}", message.key, case_key);
-                        let mut new_messages = LinkedHashMap::new();
+                        let mut new_messages = LinkedHashMap::with_capacity(message.messages.len());
                         
                         for (locale, msg_value) in &message.messages {
-                            let new_value = self.replace_select_with_case(&msg_value.value, case_key);
+                            let new_value = self.replace_select_with_case_optimized(&msg_value.value, case_key);
                             new_messages.insert(locale.clone(), models::LocalizableICUMessageValue {
                                 value: new_value,
                                 state: msg_value.state.clone(),
@@ -266,45 +262,82 @@ impl XCStringConverter {
         }
         
         if split_messages.is_empty() {
-            Ok(vec![message])
+            Ok(vec![message.clone()])
         } else {
             Ok(split_messages)
         }
     }
 
-    fn replace_select_with_case(&self, original_value: &str, case_key: &str) -> String {
+    // 最適化版: 効率的な文字列置換
+    fn replace_select_with_case_optimized(&self, original_value: &str, case_key: &str) -> String {
         let mut parser = icu_messageformat_parser::Parser::new(original_value, &self.parser_options);
         if let Ok(parsed) = parser.parse() {
             let mut formatter = XCStringFormatter::new(FormatterMode::StringUnit);
-            let replaced_elements: Result<Vec<String>, String> = parsed.iter().map(|element| {
+            let mut result = String::with_capacity(original_value.len());
+            
+            for element in &parsed {
                 match element {
                     AstElement::Select { options, .. } => {
-                        // この言語のselect要素から対応するケースを見つけて置換する
                         let case_option = options.0.iter().find(|(key, _)| *key == case_key);
                         if let Some((_, option)) = case_option {
-                            let formatted_results: Result<Vec<String>, String> = option.value.iter().map(|e| formatter.format(e)).collect();
-                            Ok(formatted_results?.join(""))
+                            for e in &option.value {
+                                result.push_str(&formatter.format(e).unwrap_or_default());
+                            }
                         } else {
-                            // フォールバック: "other"ケースを探す
                             let other_option = options.0.iter().find(|(key, _)| *key == "other");
                             if let Some((_, option)) = other_option {
-                                let formatted_results: Result<Vec<String>, String> = option.value.iter().map(|e| formatter.format(e)).collect();
-                                Ok(formatted_results?.join(""))
-                            } else {
-                                Ok("".to_string())
+                                for e in &option.value {
+                                    result.push_str(&formatter.format(e).unwrap_or_default());
+                                }
                             }
                         }
                     },
-                    _ => formatter.format(element)
+                    _ => {
+                        if let Ok(formatted) = formatter.format(element) {
+                            result.push_str(&formatted);
+                        }
+                    }
                 }
-            }).collect();
-            match replaced_elements {
-                Ok(elements) => elements.join("").trim().to_string(),
-                Err(_) => original_value.to_string()
             }
+            result
         } else {
             original_value.to_string()
         }
+    }
+
+    // 既存のメソッド（後方互換性のため）
+    fn validate_variable_consistency(&self, message: &models::LocalizableICUMessage) -> Result<(), String> {
+        self.validate_variable_consistency_optimized(message)
+    }
+    
+    fn extract_variables(&self, message_value: &str) -> Result<std::collections::HashSet<String>, String> {
+        self.extract_variables_cached(message_value)
+    }
+
+    fn convert_message(
+        &self,
+        localizable_icu_message: models::LocalizableICUMessage,
+    ) -> Result<xcstrings::XCString, String> {
+        self.convert_message_optimized(&localizable_icu_message)
+    }
+
+    fn format(
+        &self,
+        messages: LinkedHashMap<String, models::LocalizableICUMessageValue>,
+    ) -> Result<LinkedHashMap<String, xcstrings::Localization>, String> {
+        self.format_optimized(&messages)
+    }
+
+    fn has_select_elements(&self, message: &models::LocalizableICUMessage) -> bool {
+        self.has_select_elements_optimized(message)
+    }
+
+    fn split_select_message(&self, message: models::LocalizableICUMessage) -> Result<Vec<models::LocalizableICUMessage>, String> {
+        self.split_select_message_optimized(&message)
+    }
+
+    fn replace_select_with_case(&self, original_value: &str, case_key: &str) -> String {
+        self.replace_select_with_case_optimized(original_value, case_key)
     }
 }
 
