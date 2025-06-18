@@ -1,5 +1,6 @@
 use icu_messageformat_parser::{self, AstElement};
 use std::collections::HashMap;
+use std::fmt::Write;
 
 #[derive(Debug)]
 pub enum FormatterMode {
@@ -120,23 +121,35 @@ impl XCStringFormatter {
                 AstElement::Argument { value, .. } => {
                     let position = self.get_or_insert_position(value)?;
                     match self.formatter_mode {
-                        FormatterMode::StringUnit => result.push_str(&format!("%{}$@", position)),
+                        FormatterMode::StringUnit => {
+                            result.push('%');
+                            write!(result, "{}", position).unwrap();
+                            result.push_str("$@");
+                        }
                         FormatterMode::Plural => result.push_str("%arg"),
                     }
                 }
                 AstElement::Number { value, .. } => {
                     let position = self.get_or_insert_position(value)?;
-                    result.push_str(&format!("%{}$lld", position));
+                    result.push('%');
+                    write!(result, "{}", position).unwrap();
+                    result.push_str("$lld");
                 }
                 AstElement::Date { value, .. } => {
                     let position = self.get_or_insert_position(value)?;
-                    result.push_str(&format!("%{}$@", position));
+                    result.push('%');
+                    write!(result, "{}", position).unwrap();
+                    result.push_str("$@");
                 }
                 AstElement::Plural { value, .. } => {
-                    result.push_str(&format!("%#@{}@", value));
+                    result.push_str("%#@");
+                    result.push_str(value);
+                    result.push('@');
                 }
                 AstElement::Select { value, .. } => {
-                    result.push_str(&format!("%#@{}@", value));
+                    result.push_str("%#@");
+                    result.push_str(value);
+                    result.push('@');
                 }
                 AstElement::Pound(_) => result.push('#'),
                 _ => {}
