@@ -55,7 +55,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         icu_messageformat_parser::ParserOptions::default(),
     );
     let messages: Vec<models::LocalizableICUMessage> = messages.strings.into_iter().map(|s| s.into()).collect();
-    let mut xcstrings = converter.convert(messages)?;
+    
+    // 並列処理版を使用（デフォルト）
+    let mut xcstrings = converter.convert_parallel(messages)?;
     xcstrings.version = args.xcstrings_version;
 
     // Write output file
