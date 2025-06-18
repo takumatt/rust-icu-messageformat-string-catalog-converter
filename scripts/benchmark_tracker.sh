@@ -72,6 +72,7 @@ extract_benchmark_value() {
 FORMATTER_SINGLE_ARG=$(extract_benchmark_value "$FORMATTER_OUTPUT" "format_single_argument" "ns")
 FORMATTER_LITERAL=$(extract_benchmark_value "$FORMATTER_OUTPUT" "format_literal" "ns")
 FORMATTER_BATCH_LARGE=$(extract_benchmark_value "$FORMATTER_OUTPUT" "format_batch_large" "us")
+FORMATTER_BATCH_OPTIMIZED=$(extract_benchmark_value "$FORMATTER_OUTPUT" "format_batch_optimized" "us")
 
 # 大規模ファイルベンチマーク結果を抽出
 LARGE_1000=$(extract_benchmark_value "$LARGE_FILE_OUTPUT" "convert_1000_strings" "ms")
@@ -87,6 +88,7 @@ cat >> "$RESULT_FILE" << EOF
       "format_number_ns": 0,
       "format_batch_small_ns": 0,
       "format_batch_large_us": $FORMATTER_BATCH_LARGE,
+      "format_batch_optimized_us": $FORMATTER_BATCH_OPTIMIZED,
       "get_or_insert_position_ns": 0,
       "formatter_string_unit_mode_ns": 0,
       "formatter_plural_mode_ns": 0,
@@ -121,6 +123,7 @@ echo "Formatter Benchmarks:"
 echo "  - Single argument: ${FORMATTER_SINGLE_ARG} ns"
 echo "  - Literal: ${FORMATTER_LITERAL} ns"
 echo "  - Batch large: ${FORMATTER_BATCH_LARGE} μs"
+echo "  - Batch optimized: ${FORMATTER_BATCH_OPTIMIZED} μs"
 echo ""
 echo "Large File Benchmarks:"
 echo "  - 1000 strings: ${LARGE_1000} ms"

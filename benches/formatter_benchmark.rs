@@ -172,6 +172,37 @@ fn benchmark_argument_position_tracking(c: &mut Criterion) {
     });
 }
 
+fn benchmark_format_batch_optimized(c: &mut Criterion) {
+    let mut formatter = XCStringFormatter::new(FormatterMode::StringUnit);
+    let elements: Vec<AstElement> = (0..100)
+        .map(|i| {
+            if i % 3 == 0 {
+                AstElement::Literal {
+                    value: format!("Text {} ", i),
+                    span: None,
+                }
+            } else if i % 3 == 1 {
+                AstElement::Argument {
+                    value: format!("arg{}", i),
+                    span: None,
+                }
+            } else {
+                AstElement::Number {
+                    value: format!("num{}", i),
+                    style: None,
+                    span: None,
+                }
+            }
+        })
+        .collect();
+
+    c.bench_function("format_batch_optimized", |b| {
+        b.iter(|| {
+            let _result = formatter.format_batch_optimized(black_box(&elements));
+        });
+    });
+}
+
 criterion_group!(
     benches,
     benchmark_format_single_argument,
@@ -182,6 +213,7 @@ criterion_group!(
     benchmark_get_or_insert_position,
     benchmark_formatter_mode_comparison,
     benchmark_format_with_capacity,
-    benchmark_argument_position_tracking
+    benchmark_argument_position_tracking,
+    benchmark_format_batch_optimized
 );
 criterion_main!(benches); 
