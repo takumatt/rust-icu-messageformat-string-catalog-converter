@@ -2,33 +2,7 @@ use std::{fs, path::PathBuf};
 
 use rust_icu_messageformat_string_catalog_converter::models::{LocalizableICUMessage, LocalizableICUStrings};
 use rust_icu_messageformat_string_catalog_converter::converter::XCStringConverter;
-use serde::Deserialize;
 use testing::fixture;
-
-#[derive(Debug, Deserialize)]
-struct Fixture {
-    message: String,
-    options: String,
-    output: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct FixtureOptions {
-    source_language: String,
-}
-
-fn parse_fixture(file: PathBuf) -> Fixture {
-    let contents = fs::read_to_string(file).expect("Failed to read test fixture file");
-    let sections: Vec<String> = contents.split("---\n").map(|s| s.to_string()).collect();
-    if sections.len() < 3 {
-        panic!("Test fixture must have 3 sections separated by '---\\n'");
-    }
-    Fixture {
-        message: sections[0].clone(),
-        options: sections[1].clone(),
-        output: sections[2].clone(),
-    }
-}
 
 #[fixture("tests/fixtures/simple_argument")]
 #[fixture("tests/fixtures/pluralization")]
@@ -36,15 +10,21 @@ fn parse_fixture(file: PathBuf) -> Fixture {
 #[fixture("tests/fixtures/icu_messageformat")]
 #[fixture("tests/fixtures/multiple_arguments")]
 #[fixture("tests/fixtures/select_splitting")]
-fn converter_tests(file: PathBuf) {
-    let fixture_sections = parse_fixture(file);
-    let messages: LocalizableICUStrings = serde_json::from_str(&fixture_sections.message)
+fn converter_tests(dir: PathBuf) {
+    let input_path = dir.join("input.json");
+    let expected_path = dir.join("expected_output.json");
+    let message = fs::read_to_string(&input_path).expect("Failed to read input.json");
+    let output = fs::read_to_string(&expected_path).expect("Failed to read expected_output.json");
+
+    // source_languageはinput.jsonやexpected_output.jsonから取得する必要がある場合はパースする
+    // ここではexpected_output.jsonから取得する例
+    let expected_json: serde_json::Value = serde_json::from_str(&output).expect("Failed to parse expected_output.json");
+    let source_language = expected_json["sourceLanguage"].as_str().unwrap_or("").to_string();
+
+    let messages: LocalizableICUStrings = serde_json::from_str(&message)
         .expect("Failed to parse test fixture message JSON");
-    let options: FixtureOptions = serde_json::from_str(&fixture_sections.options)
-        .expect("Failed to parse test fixture options JSON");
-    let output: String = fixture_sections.output;
     let converter = XCStringConverter::new(
-        options.source_language,
+        source_language,
         rust_icu_messageformat_string_catalog_converter::models::ConverterOptions::default(),
         icu_messageformat_parser::ParserOptions::default(),
     );
