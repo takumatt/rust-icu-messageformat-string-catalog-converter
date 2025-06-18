@@ -62,6 +62,7 @@ impl XCStringFormatter {
         Ok(position)
     }
 
+    #[allow(dead_code)]
     pub fn format_batch(&mut self, elements: &[AstElement]) -> Result<String, String> {
         let mut result = String::with_capacity(elements.len() * 10);
         
@@ -72,6 +73,7 @@ impl XCStringFormatter {
         Ok(result)
     }
 
+    #[allow(dead_code)]
     pub fn format_with_capacity(&mut self, element: &AstElement, capacity: usize) -> Result<String, String> {
         let mut result = String::with_capacity(capacity);
         result.push_str(&self.format(element)?);

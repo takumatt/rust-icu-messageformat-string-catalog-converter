@@ -306,14 +306,17 @@ impl XCStringConverter {
     }
 
     // 既存のメソッド（後方互換性のため）
+    #[allow(dead_code)]
     fn validate_variable_consistency(&self, message: &models::LocalizableICUMessage) -> Result<(), String> {
         self.validate_variable_consistency_optimized(message)
     }
     
+    #[allow(dead_code)]
     fn extract_variables(&self, message_value: &str) -> Result<std::collections::HashSet<String>, String> {
         self.extract_variables_cached(message_value)
     }
 
+    #[allow(dead_code)]
     fn convert_message(
         &self,
         localizable_icu_message: models::LocalizableICUMessage,
@@ -321,6 +324,7 @@ impl XCStringConverter {
         self.convert_message_optimized(&localizable_icu_message)
     }
 
+    #[allow(dead_code)]
     fn format(
         &self,
         messages: LinkedHashMap<String, models::LocalizableICUMessageValue>,
@@ -328,14 +332,17 @@ impl XCStringConverter {
         self.format_optimized(&messages)
     }
 
+    #[allow(dead_code)]
     fn has_select_elements(&self, message: &models::LocalizableICUMessage) -> bool {
         self.has_select_elements_optimized(message)
     }
 
+    #[allow(dead_code)]
     fn split_select_message(&self, message: models::LocalizableICUMessage) -> Result<Vec<models::LocalizableICUMessage>, String> {
         self.split_select_message_optimized(&message)
     }
 
+    #[allow(dead_code)]
     fn replace_select_with_case(&self, original_value: &str, case_key: &str) -> String {
         self.replace_select_with_case_optimized(original_value, case_key)
     }
