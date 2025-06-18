@@ -1,0 +1,35 @@
+{
+  "metadata": {
+    "date": "2025-06-18_15-59-45",
+    "commit_hash": "325b2da8d516426f36af3b3c78aba1d23f7c0816",
+    "commit_short": "325b2da8",
+    "machine": "Darwin_arm64",
+    "rust_version": "1.87.0",
+    "cargo_version": "1.87.0"
+  },
+  "benchmarks": {
+    "formatter": {
+      "format_single_argument_ns": 0,
+      "format_literal_ns": 0,
+      "format_number_ns": 0,
+      "format_batch_small_ns": 0,
+      "format_batch_large_us": 0,
+      "get_or_insert_position_ns": 0,
+      "formatter_string_unit_mode_ns": 0,
+      "formatter_plural_mode_ns": 0,
+      "format_with_capacity_small_ns": 0,
+      "format_with_capacity_large_ns": 0,
+      "argument_position_tracking_100_us": 0
+    },
+    "large_file": {
+      "convert_1000_strings_ms": 0,
+      "convert_5000_strings_ms": 0,
+      "convert_10000_strings_ms": 0,
+      "convert_1000_strings_with_plurals_ms": 0,
+      "convert_1000_strings_with_selects_ms": 0,
+      "convert_1000_strings_mixed_content_ms": 0,
+      "memory_usage_10000_strings_ms": 0,
+      "serialize_5000_strings_to_json_ms": 0
+    }
+  }
+}
