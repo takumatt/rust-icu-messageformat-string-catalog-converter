@@ -1,5 +1,5 @@
 use icu_messageformat_parser::{self, AstElement};
-use linked_hash_set::LinkedHashSet;
+use std::collections::HashMap;
 
 #[derive(Debug)]
 pub enum FormatterMode {
@@ -9,14 +9,16 @@ pub enum FormatterMode {
 
 pub struct XCStringFormatter {
     formatter_mode: FormatterMode,
-    argument_positions: LinkedHashSet<String>,
+    argument_positions: HashMap<String, usize>,
+    next_position: usize,
 }
 
 impl XCStringFormatter {
     pub fn new(mode: FormatterMode) -> Self {
         XCStringFormatter {
             formatter_mode: mode,
-            argument_positions: LinkedHashSet::new(),
+            argument_positions: HashMap::new(),
+            next_position: 1,
         }
     }
 
@@ -46,20 +48,15 @@ impl XCStringFormatter {
     }
 
     fn get_or_insert_position(&mut self, value: &str) -> Result<usize, String> {
-        if !self.argument_positions.contains(value) {
-            self.argument_positions.insert(value.to_string());
+        if let Some(&position) = self.argument_positions.get(value) {
+            Ok(position)
+        } else {
+            let position = self.next_position;
+            self.argument_positions.insert(value.to_string(), position);
+            self.next_position = self.next_position.checked_add(1)
+                .ok_or_else(|| format!("Position overflow for argument '{}'", value))?;
+            Ok(position)
         }
-        
-        let index = self
-            .argument_positions
-            .iter()
-            .position(|x| x == value)
-            .ok_or_else(|| format!("Failed to find position for argument '{}'", value))?;
-        
-        let position = index.checked_add(1)
-            .ok_or_else(|| format!("Position overflow for argument '{}'", value))?;
-        
-        Ok(position)
     }
 
     #[allow(dead_code)]
