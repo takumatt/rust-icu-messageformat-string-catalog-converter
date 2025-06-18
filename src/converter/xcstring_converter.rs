@@ -4,6 +4,7 @@ use crate::converter::substitution_builder::XCStringSubstitutionBuilder;
 use crate::xcstrings;
 use icu_messageformat_parser::{self, AstElement};
 use linked_hash_map::LinkedHashMap;
+use rayon::prelude::*;
 
 #[derive(Debug)]
 pub struct XCStringConverter {
@@ -55,6 +56,52 @@ impl XCStringConverter {
                 // 通常処理（最適化版）
                 let xcstring = self.convert_message_optimized(message)?;
                 xcstrings.strings.insert(message.key.clone(), xcstring);
+            }
+        }
+        
+        Ok(xcstrings)
+    }
+
+    /// 並列処理版のconvertメソッド（大規模ファイル用）
+    pub fn convert_parallel(&self, messages: Vec<models::LocalizableICUMessage>) -> Result<xcstrings::XCStrings, String> {
+        // 並列処理でメッセージを処理
+        let processed_messages: Result<Vec<_>, String> = messages
+            .into_par_iter()
+            .map(|message| {
+                // 変数の一貫性をチェック
+                self.validate_variable_consistency_optimized(&message)?;
+                
+                if self.has_select_elements_optimized(&message) {
+                    if self.converter_options.split_select_elements {
+                        // select要素を分割
+                        let split_messages = self.split_select_message_optimized(&message)?;
+                        Ok(split_messages.into_iter().map(|split_message| {
+                            let xcstring = self.convert_message_optimized(&split_message)?;
+                            Ok((split_message.key, xcstring))
+                        }).collect::<Result<Vec<_>, String>>()?)
+                    } else {
+                        Err(format!("Select elements are not supported by xcstrings. Found in key: '{}'. Consider enabling split_select_elements option.", message.key))
+                    }
+                } else {
+                    // 通常処理
+                    let xcstring = self.convert_message_optimized(&message)?;
+                    Ok(vec![(message.key, xcstring)])
+                }
+            })
+            .collect();
+        
+        let processed_messages = processed_messages?;
+        
+        // 結果を統合
+        let mut xcstrings = xcstrings::XCStrings {
+            source_language: self.source_language.clone(),
+            strings: LinkedHashMap::new(),
+            version: "1.0".to_string(),
+        };
+        
+        for message_group in processed_messages {
+            for (key, xcstring) in message_group {
+                xcstrings.strings.insert(key, xcstring);
             }
         }
         

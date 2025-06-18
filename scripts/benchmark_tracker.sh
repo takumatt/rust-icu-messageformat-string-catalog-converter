@@ -78,6 +78,7 @@ FORMATTER_BATCH_OPTIMIZED=$(extract_benchmark_value "$FORMATTER_OUTPUT" "format_
 LARGE_1000=$(extract_benchmark_value "$LARGE_FILE_OUTPUT" "convert_1000_strings" "ms")
 LARGE_5000=$(extract_benchmark_value "$LARGE_FILE_OUTPUT" "convert_5000_strings" "ms")
 LARGE_10000=$(extract_benchmark_value "$LARGE_FILE_OUTPUT" "convert_10000_strings" "ms")
+LARGE_10000_PARALLEL=$(extract_benchmark_value "$LARGE_FILE_OUTPUT" "convert_10000_strings_parallel" "ms")
 LARGE_SERIALIZE=$(extract_benchmark_value "$LARGE_FILE_OUTPUT" "serialize_5000_strings_to_json" "ms")
 
 # 結果をJSONに追加
@@ -100,6 +101,7 @@ cat >> "$RESULT_FILE" << EOF
       "convert_1000_strings_ms": $LARGE_1000,
       "convert_5000_strings_ms": $LARGE_5000,
       "convert_10000_strings_ms": $LARGE_10000,
+      "convert_10000_strings_parallel_ms": $LARGE_10000_PARALLEL,
       "convert_1000_strings_with_plurals_ms": 0,
       "convert_1000_strings_with_selects_ms": 0,
       "convert_1000_strings_mixed_content_ms": 0,
@@ -129,6 +131,7 @@ echo "Large File Benchmarks:"
 echo "  - 1000 strings: ${LARGE_1000} ms"
 echo "  - 5000 strings: ${LARGE_5000} ms"
 echo "  - 10000 strings: ${LARGE_10000} ms"
+echo "  - 10000 strings (parallel): ${LARGE_10000_PARALLEL} ms"
 echo "  - Serialization: ${LARGE_SERIALIZE} ms"
 
 # 前回の結果と比較（存在する場合）

@@ -146,6 +146,22 @@ fn benchmark_convert_10000_strings(c: &mut Criterion) {
     });
 }
 
+fn benchmark_convert_10000_strings_parallel(c: &mut Criterion) {
+    let test_data = generate_large_test_data(10000);
+    let converter = XCStringConverter::new(
+        "en".to_string(),
+        rust_icu_messageformat_string_catalog_converter::models::ConverterOptions::default(),
+        icu_messageformat_parser::ParserOptions::default(),
+    );
+    
+    c.bench_function("convert_10000_strings_parallel", |b| {
+        b.iter(|| {
+            let messages: Vec<LocalizableICUMessage> = test_data.strings.clone().into_iter().map(|s| s.into()).collect();
+            let _result = converter.convert_parallel(black_box(messages));
+        });
+    });
+}
+
 fn benchmark_convert_with_plurals(c: &mut Criterion) {
     let test_data = generate_large_test_data_with_plurals(1000);
     let converter = XCStringConverter::new(
@@ -241,6 +257,7 @@ criterion_group!(
     benchmark_convert_1000_strings,
     benchmark_convert_5000_strings,
     benchmark_convert_10000_strings,
+    benchmark_convert_10000_strings_parallel,
     benchmark_convert_with_plurals,
     benchmark_convert_with_selects,
     benchmark_convert_mixed_content,
