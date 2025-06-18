@@ -17,3 +17,11 @@ testing = "0.35.20"
 
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "formatter_benchmark"
+harness = false
+
+[[bench]]
+name = "large_file_benchmark"
+harness = false
