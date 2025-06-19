@@ -29,20 +29,46 @@ impl XCStringFormatter {
             AstElement::Argument { value, .. } => {
                 let position = self.get_or_insert_position(value)?;
                 match self.formatter_mode {
-                    FormatterMode::StringUnit => Ok(format!("%{}$@", position)),
+                    FormatterMode::StringUnit => {
+                        let mut result = String::with_capacity(8);
+                        result.push('%');
+                        write!(result, "{}", position).unwrap();
+                        result.push_str("$@");
+                        Ok(result)
+                    }
                     FormatterMode::Plural => Ok("%arg".to_string()),
                 }
             }
             AstElement::Number { value, .. } => {
                 let position = self.get_or_insert_position(value)?;
-                Ok(format!("%{}$lld", position))
+                let mut result = String::with_capacity(10);
+                result.push('%');
+                write!(result, "{}", position).unwrap();
+                result.push_str("$lld");
+                Ok(result)
             }
             AstElement::Date { value, .. } => {
                 let position = self.get_or_insert_position(value)?;
-                Ok(format!("%{}$@", position))
+                let mut result = String::with_capacity(8);
+                result.push('%');
+                write!(result, "{}", position).unwrap();
+                result.push_str("$@");
+                Ok(result)
             }
-            AstElement::Plural { value, .. } => Ok(format!("%#@{}@", value)),
-            AstElement::Select { value, .. } => Ok(format!("%#@{}@", value)),
+            AstElement::Plural { value, .. } => {
+                let mut result = String::with_capacity(5 + value.len());
+                result.push_str("%#@");
+                result.push_str(value);
+                result.push('@');
+                Ok(result)
+            }
+            AstElement::Select { value, .. } => {
+                let mut result = String::with_capacity(5 + value.len());
+                result.push_str("%#@");
+                result.push_str(value);
+                result.push('@');
+                Ok(result)
+            }
             AstElement::Pound(_) => Ok("#".to_string()),
             _ => Ok(String::new()),
         }
