@@ -18,7 +18,7 @@ impl XCStringFormatter {
     pub fn new(mode: FormatterMode) -> Self {
         XCStringFormatter {
             formatter_mode: mode,
-            argument_positions: HashMap::new(),
+            argument_positions: HashMap::with_capacity(16),
             next_position: 1,
         }
     }
@@ -43,7 +43,7 @@ impl XCStringFormatter {
                 let position = self.get_or_insert_position(value)?;
                 let mut result = String::with_capacity(10);
                 result.push('%');
-                write!(result, "{}", position).unwrap();
+                write_number_to_string(&mut result, position);
                 result.push_str("$lld");
                 Ok(result)
             }
@@ -51,7 +51,7 @@ impl XCStringFormatter {
                 let position = self.get_or_insert_position(value)?;
                 let mut result = String::with_capacity(8);
                 result.push('%');
-                write!(result, "{}", position).unwrap();
+                write_number_to_string(&mut result, position);
                 result.push_str("$@");
                 Ok(result)
             }
@@ -149,7 +149,7 @@ impl XCStringFormatter {
                     match self.formatter_mode {
                         FormatterMode::StringUnit => {
                             result.push('%');
-                            write!(result, "{}", position).unwrap();
+                            write_number_to_string(&mut result, position);
                             result.push_str("$@");
                         }
                         FormatterMode::Plural => result.push_str("%arg"),
@@ -158,13 +158,13 @@ impl XCStringFormatter {
                 AstElement::Number { value, .. } => {
                     let position = self.get_or_insert_position(value)?;
                     result.push('%');
-                    write!(result, "{}", position).unwrap();
+                    write_number_to_string(&mut result, position);
                     result.push_str("$lld");
                 }
                 AstElement::Date { value, .. } => {
                     let position = self.get_or_insert_position(value)?;
                     result.push('%');
-                    write!(result, "{}", position).unwrap();
+                    write_number_to_string(&mut result, position);
                     result.push_str("$@");
                 }
                 AstElement::Plural { value, .. } => {
@@ -183,6 +183,15 @@ impl XCStringFormatter {
         }
         
         Ok(result)
+    }
+}
+
+// 数値変換の最適化用
+fn write_number_to_string(s: &mut String, n: usize) {
+    if n < 10 {
+        s.push((b'0' + n as u8) as char);
+    } else {
+        write!(s, "{}", n).unwrap();
     }
 }
 

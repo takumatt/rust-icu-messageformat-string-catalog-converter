@@ -95,7 +95,7 @@ impl XCStringConverter {
         // 結果を統合
         let mut xcstrings = xcstrings::XCStrings {
             source_language: self.source_language.clone(),
-            strings: LinkedHashMap::new(),
+            strings: LinkedHashMap::with_capacity(processed_messages.iter().map(|group| group.len()).sum()),
             version: "1.0".to_string(),
         };
         
