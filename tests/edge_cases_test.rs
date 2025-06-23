@@ -453,4 +453,67 @@ fn test_position_overflow() {
     
     let result = converter.convert(vec![message]);
     assert!(result.is_ok()); // checked_add で保護されているはず
+}
+
+// テスト16: ignore_tag オプションのテスト
+#[test]
+fn test_ignore_tag_option() {
+    let mut messages = LinkedHashMap::new();
+    messages.insert("en".to_string(), LocalizableICUMessageValue {
+        value: "For health insurance cards only: Please hide <symbol and number> and <insurer number> before submitting.".to_string(),
+        state: "translated".to_string(),
+    });
+    
+    let message = LocalizableICUMessage {
+        key: "ignore_tag_test".to_string(),
+        messages,
+        comment: Some("Test case with angle brackets".to_string()),
+    };
+    
+    // ignore_tag: true の場合（成功するはず）
+    let parser_options_ignore = icu_messageformat_parser::ParserOptions {
+        ignore_tag: true,
+        requires_other_clause: false,
+        should_parse_skeletons: false,
+        capture_location: false,
+        locale: None,
+    };
+    
+    let converter_ignore = XCStringConverter::new(
+        "en".to_string(),
+        ConverterOptions::default(),
+        parser_options_ignore,
+    );
+    
+    let result_ignore = converter_ignore.convert_parallel(vec![message.clone()]);
+    assert!(result_ignore.is_ok());
+    
+    if let Ok(xcstrings) = result_ignore {
+        let localization = xcstrings.strings.get("ignore_tag_test").unwrap();
+        let en_value = &localization.localizations.get("en").unwrap().string_unit.value;
+        assert!(en_value.contains("<symbol and number>"));
+        assert!(en_value.contains("<insurer number>"));
+    }
+    
+    // ignore_tag: false の場合（エラーになるはず）
+    let parser_options_no_ignore = icu_messageformat_parser::ParserOptions {
+        ignore_tag: false,
+        requires_other_clause: false,
+        should_parse_skeletons: false,
+        capture_location: false,
+        locale: None,
+    };
+    
+    let converter_no_ignore = XCStringConverter::new(
+        "en".to_string(),
+        ConverterOptions::default(),
+        parser_options_no_ignore,
+    );
+    
+    let result_no_ignore = converter_no_ignore.convert_parallel(vec![message]);
+    assert!(result_no_ignore.is_err());
+    
+    if let Err(error_message) = result_no_ignore {
+        assert!(error_message.contains("InvalidTag"));
+    }
 } 

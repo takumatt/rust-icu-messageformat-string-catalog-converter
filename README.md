@@ -34,23 +34,36 @@ ICU MessageFormat requires special handling for certain characters:
 **Problem Characters:**
 - Empty curly braces `{}` are interpreted as empty arguments (invalid)
 - Unescaped curly braces in literal text cause parsing errors
+- **Angle brackets `<>` may be interpreted as HTML/XML tags**
 
-**Solution - Use ICU Escaping:**
+**Solution 1 - Use the `--ignore-tag` option (Recommended):**
+```bash
+# Enable ignore-tag to treat angle brackets as literal text (default)
+cargo run -- -i input.json -o output.xcstrings -s en --ignore-tag true
+```
+
+**Solution 2 - Use ICU Escaping:**
 ```json
-// ❌ Wrong - will cause parsing errors
+// ❌ Wrong - may cause InvalidTag errors
 {
-  "value": "Special chars: {}"
+  "value": "Please hide <symbol and number> before submitting."
 }
 
 // ✅ Correct - properly escaped
 {
-  "value": "Special chars: '{'}'}'"
+  "value": "Please hide '<'symbol and number'>' before submitting."
+}
+
+// ✅ Alternative - use ignore-tag option (recommended)
+{
+  "value": "Please hide <symbol and number> before submitting."
 }
 ```
 
 **ICU Escaping Rules:**
 - Literal curly braces: `'{'` and `'}'`
 - Literal single quotes: `''`
+- Literal angle brackets: `'<'` and `'>'` (when ignore-tag is false)
 
 ### Variable Consistency Validation
 
@@ -96,6 +109,7 @@ cargo run -- --input input.json --output output.xcstrings --source-language ja
 | `--xcstrings-version` | | xcstrings file format version | `"1.0"` | `"1.0"` |
 | `--localization-state` | `-l` | Default localization state | `translated` | `translated`, `needs_review` |
 | `--split-select-elements` | | Split select elements into separate keys | `true` | `true`, `false` |
+| `--ignore-tag` | | Ignore HTML/XML tags and treat as literal text | `true` | `true`, `false` |
 
 #### Select Element Behavior
 
@@ -117,6 +131,28 @@ cargo run -- -i input.json -o output.xcstrings -s en --split-select-elements tru
 
 # Disable select splitting (will error if select elements exist)
 cargo run -- -i input.json -o output.xcstrings -s en --split-select-elements false
+
+#### HTML/XML Tag Handling
+
+The ICU MessageFormat parser can interpret angle brackets `<>` as HTML/XML tags, which may cause `InvalidTag` errors when the content between brackets doesn't form valid tags.
+
+**When `--ignore-tag true` (default):**
+- ✅ Angle brackets are treated as literal text
+- No parsing errors for content like `<symbol and number>`
+- Recommended for most use cases
+
+**When `--ignore-tag false`:**
+- ❌ Angle brackets are parsed as HTML/XML tags
+- May cause `InvalidTag` errors for invalid tag content
+- Only use if you need actual HTML/XML tag parsing
+
+**Example:**
+```bash
+# Safe handling of angle brackets (default)
+cargo run -- -i input.json -o output.xcstrings -s en --ignore-tag true
+
+# Strict HTML/XML tag parsing (may cause errors)
+cargo run -- -i input.json -o output.xcstrings -s en --ignore-tag false
 ```
 
 **Example Transformation:**
