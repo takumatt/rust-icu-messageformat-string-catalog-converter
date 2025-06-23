@@ -31,10 +31,6 @@ struct Args {
     /// Split select elements into separate keys (default: true)
     #[arg(long, action = clap::ArgAction::Set, default_value = "true")]
     split_select_elements: bool,
-
-    /// Ignore HTML/XML tags and treat them as literal text (default: true)
-    #[arg(long, action = clap::ArgAction::Set, default_value = "true")]
-    ignore_tag: bool,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -53,9 +49,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
     options.split_select_elements = args.split_select_elements;
     
-    // Create parser options with configurable ignore_tag to prevent HTML tag parsing
+    // Create parser options with ignore_tag always true to prevent HTML tag parsing
     let parser_options = icu_messageformat_parser::ParserOptions {
-        ignore_tag: args.ignore_tag,
+        ignore_tag: true,
         requires_other_clause: false,
         should_parse_skeletons: false,
         capture_location: false,

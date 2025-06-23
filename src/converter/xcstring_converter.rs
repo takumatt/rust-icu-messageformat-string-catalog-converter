@@ -26,26 +26,6 @@ impl XCStringConverter {
             parser_options,
         }
     }
-    
-    /// Create a new converter with safe default parser options (ignore_tag: true)
-    pub fn new_with_safe_defaults(
-        source_language: String,
-        converter_options: ConverterOptions,
-    ) -> XCStringConverter {
-        let parser_options = icu_messageformat_parser::ParserOptions {
-            ignore_tag: true,
-            requires_other_clause: false,
-            should_parse_skeletons: false,
-            capture_location: false,
-            locale: None,
-        };
-        
-        XCStringConverter {
-            source_language,
-            converter_options,
-            parser_options,
-        }
-    }
 
     pub fn convert(&self, messages: Vec<models::LocalizableICUMessage>) -> Result<xcstrings::XCStrings, String> {
         let mut xcstrings = xcstrings::XCStrings {

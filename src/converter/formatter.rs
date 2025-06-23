@@ -81,8 +81,8 @@ impl XCStringFormatter {
             let position = self.next_position;
             self.argument_positions.insert(value.to_string(), position);
             self.next_position = self.next_position.checked_add(1)
-                .ok_or_else(|| format!("Position overflow for argument '{}'", value))?;
-            Ok(position)
+            .ok_or_else(|| format!("Position overflow for argument '{}'", value))?;
+        Ok(position)
         }
     }
 
