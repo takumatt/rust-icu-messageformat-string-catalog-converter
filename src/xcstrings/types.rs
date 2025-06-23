@@ -38,7 +38,7 @@ pub struct StringUnit {
 }
 
 #[derive(Clone, Debug, Serialize, PartialEq)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "camelCase")]
 pub enum LocalizationState {
     Translated,
     NeedsReview,
@@ -63,4 +63,35 @@ pub enum VariationType {
 #[serde(rename_all = "camelCase")]
 pub struct VariationValue {
     pub string_unit: StringUnit,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json;
+
+    #[test]
+    fn test_localization_state_serialization() {
+        // translated should serialize to "translated"
+        let translated = LocalizationState::Translated;
+        let json = serde_json::to_string(&translated).unwrap();
+        assert_eq!(json, "\"translated\"");
+
+        // NeedsReview should serialize to "needsReview" (camelCase)
+        let needs_review = LocalizationState::NeedsReview;
+        let json = serde_json::to_string(&needs_review).unwrap();
+        assert_eq!(json, "\"needsReview\"");
+    }
+
+    #[test]
+    fn test_string_unit_serialization() {
+        let string_unit = StringUnit {
+            localization_state: LocalizationState::NeedsReview,
+            value: "Test value".to_string(),
+        };
+
+        let json = serde_json::to_string(&string_unit).unwrap();
+        assert!(json.contains("\"state\":\"needsReview\""));
+        assert!(json.contains("\"value\":\"Test value\""));
+    }
 }
