@@ -9,7 +9,6 @@ use rayon::prelude::*;
 #[derive(Debug)]
 pub struct XCStringConverter {
     source_language: String,
-    #[allow(dead_code)]
     converter_options: ConverterOptions,
     parser_options: icu_messageformat_parser::ParserOptions,
 }
@@ -36,17 +35,17 @@ impl XCStringConverter {
         };
         
         for message in messages.iter() {
-            // 変数の一貫性をチェック（最適化版）
-            if let Err(error) = self.validate_variable_consistency_optimized(message) {
+            // 変数の一貫性をチェック
+            if let Err(error) = self.validate_variable_consistency(message) {
                 return Err(error);
             }
             
-            if self.has_select_elements_optimized(message) {
+            if self.has_select_elements(message) {
                 if self.converter_options.split_select_elements {
                     // select要素を分割
-                    let split_messages = self.split_select_message_optimized(message)?;
+                    let split_messages = self.split_select_message(message)?;
                     for split_message in split_messages {
-                        let xcstring = self.convert_message_optimized(&split_message)?;
+                        let xcstring = self.convert_message(&split_message)?;
                         xcstrings.strings.insert(split_message.key, xcstring);
                     }
                 } else {
@@ -54,8 +53,8 @@ impl XCStringConverter {
                     return Err(format!("Select elements are not supported by xcstrings. Found in key: '{}'. Consider enabling split_select_elements option.", message.key));
                 }
             } else {
-                // 通常処理（最適化版）
-                let xcstring = self.convert_message_optimized(message)?;
+                // 通常処理
+                let xcstring = self.convert_message(message)?;
                 xcstrings.strings.insert(message.key.clone(), xcstring);
             }
         }
@@ -70,14 +69,14 @@ impl XCStringConverter {
             .into_par_iter()
             .map(|message| {
                 // 変数の一貫性をチェック
-                self.validate_variable_consistency_optimized(&message)?;
+                self.validate_variable_consistency(&message)?;
                 
-                if self.has_select_elements_optimized(&message) {
+                if self.has_select_elements(&message) {
                     if self.converter_options.split_select_elements {
                         // select要素を分割
-                        let split_messages = self.split_select_message_optimized(&message)?;
+                        let split_messages = self.split_select_message(&message)?;
                         Ok(split_messages.into_iter().map(|split_message| {
-                            let xcstring = self.convert_message_optimized(&split_message)?;
+                            let xcstring = self.convert_message(&split_message)?;
                             Ok((split_message.key, xcstring))
                         }).collect::<Result<Vec<_>, String>>()?)
                     } else {
@@ -85,7 +84,7 @@ impl XCStringConverter {
                     }
                 } else {
                     // 通常処理
-                    let xcstring = self.convert_message_optimized(&message)?;
+                    let xcstring = self.convert_message(&message)?;
                     Ok(vec![(message.key, xcstring)])
                 }
             })
@@ -109,12 +108,11 @@ impl XCStringConverter {
         Ok(xcstrings)
     }
 
-    // 最適化版: パース結果をキャッシュして重複パースを避ける
-    fn validate_variable_consistency_optimized(&self, message: &models::LocalizableICUMessage) -> Result<(), String> {
+    fn validate_variable_consistency(&self, message: &models::LocalizableICUMessage) -> Result<(), String> {
         let mut reference_variables: Option<std::collections::HashSet<String>> = None;
         
         for (locale, msg_value) in &message.messages {
-            let variables = self.extract_variables_cached(&msg_value.value)?;
+            let variables = self.extract_variables(&msg_value.value)?;
             
             match &reference_variables {
                 None => {
@@ -152,8 +150,7 @@ impl XCStringConverter {
         Ok(())
     }
     
-    // 最適化版: パース結果をキャッシュ
-    fn extract_variables_cached(&self, message_value: &str) -> Result<std::collections::HashSet<String>, String> {
+    fn extract_variables(&self, message_value: &str) -> Result<std::collections::HashSet<String>, String> {
         let mut variables = std::collections::HashSet::new();
         let mut parser = icu_messageformat_parser::Parser::new(message_value, &self.parser_options);
         
@@ -191,14 +188,13 @@ impl XCStringConverter {
         }
     }
 
-    // 最適化版: パース結果を再利用
-    fn convert_message_optimized(&self, localizable_icu_message: &models::LocalizableICUMessage) -> Result<xcstrings::XCString, String> {
+    fn convert_message(&self, localizable_icu_message: &models::LocalizableICUMessage) -> Result<xcstrings::XCString, String> {
         let mut xcstring = xcstrings::XCString {
             extraction_state: xcstrings::ExtractionState::Manual,
             localizations: LinkedHashMap::with_capacity(localizable_icu_message.messages.len()),
         };
         
-        let localizations = self.format_optimized(&localizable_icu_message.messages)?;
+        let localizations = self.format(&localizable_icu_message.messages)?;
         for (locale, localization) in localizations {
             xcstring.localizations.insert(locale, localization);
         }
@@ -206,8 +202,7 @@ impl XCStringConverter {
         Ok(xcstring)
     }
 
-    // 最適化版: 効率的な文字列処理とメモリ割り当て
-    fn format_optimized(
+    fn format(
         &self,
         messages: &LinkedHashMap<String, models::LocalizableICUMessageValue>,
     ) -> Result<LinkedHashMap<String, xcstrings::Localization>, String> {
@@ -262,8 +257,7 @@ impl XCStringConverter {
         Ok(result)
     }
 
-    // 最適化版: パース結果をキャッシュして重複パースを避ける
-    fn has_select_elements_optimized(&self, message: &models::LocalizableICUMessage) -> bool {
+    fn has_select_elements(&self, message: &models::LocalizableICUMessage) -> bool {
         message.messages.values().any(|msg_value| {
             let mut parser = icu_messageformat_parser::Parser::new(&msg_value.value, &self.parser_options);
             if let Ok(parsed) = parser.parse() {
@@ -274,8 +268,7 @@ impl XCStringConverter {
         })
     }
 
-    // 最適化版: 効率的なメモリ割り当て
-    fn split_select_message_optimized(&self, message: &models::LocalizableICUMessage) -> Result<Vec<models::LocalizableICUMessage>, String> {
+    fn split_select_message(&self, message: &models::LocalizableICUMessage) -> Result<Vec<models::LocalizableICUMessage>, String> {
         let mut split_messages = Vec::new();
         
         let first_message = match message.messages.values().next() {
@@ -292,7 +285,7 @@ impl XCStringConverter {
                         let mut new_messages = LinkedHashMap::with_capacity(message.messages.len());
                         
                         for (locale, msg_value) in &message.messages {
-                            let new_value = self.replace_select_with_case_optimized(&msg_value.value, case_key);
+                            let new_value = self.replace_select_with_case(&msg_value.value, case_key);
                             new_messages.insert(locale.clone(), models::LocalizableICUMessageValue {
                                 value: new_value,
                                 state: msg_value.state.clone(),
@@ -316,8 +309,7 @@ impl XCStringConverter {
         }
     }
 
-    // 最適化版: 効率的な文字列置換
-    fn replace_select_with_case_optimized(&self, original_value: &str, case_key: &str) -> String {
+    fn replace_select_with_case(&self, original_value: &str, case_key: &str) -> String {
         let mut parser = icu_messageformat_parser::Parser::new(original_value, &self.parser_options);
         if let Ok(parsed) = parser.parse() {
             let mut formatter = XCStringFormatter::new(FormatterMode::StringUnit);
@@ -353,47 +345,6 @@ impl XCStringConverter {
         }
     }
 
-    // 既存のメソッド（後方互換性のため）
-    #[allow(dead_code)]
-    fn validate_variable_consistency(&self, message: &models::LocalizableICUMessage) -> Result<(), String> {
-        self.validate_variable_consistency_optimized(message)
-    }
-    
-    #[allow(dead_code)]
-    fn extract_variables(&self, message_value: &str) -> Result<std::collections::HashSet<String>, String> {
-        self.extract_variables_cached(message_value)
-    }
-
-    #[allow(dead_code)]
-    fn convert_message(
-        &self,
-        localizable_icu_message: models::LocalizableICUMessage,
-    ) -> Result<xcstrings::XCString, String> {
-        self.convert_message_optimized(&localizable_icu_message)
-    }
-
-    #[allow(dead_code)]
-    fn format(
-        &self,
-        messages: LinkedHashMap<String, models::LocalizableICUMessageValue>,
-    ) -> Result<LinkedHashMap<String, xcstrings::Localization>, String> {
-        self.format_optimized(&messages)
-    }
-
-    #[allow(dead_code)]
-    fn has_select_elements(&self, message: &models::LocalizableICUMessage) -> bool {
-        self.has_select_elements_optimized(message)
-    }
-
-    #[allow(dead_code)]
-    fn split_select_message(&self, message: models::LocalizableICUMessage) -> Result<Vec<models::LocalizableICUMessage>, String> {
-        self.split_select_message_optimized(&message)
-    }
-
-    #[allow(dead_code)]
-    fn replace_select_with_case(&self, original_value: &str, case_key: &str) -> String {
-        self.replace_select_with_case_optimized(original_value, case_key)
-    }
 }
 
 #[cfg(test)]
