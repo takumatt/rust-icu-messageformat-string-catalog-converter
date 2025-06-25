@@ -27,6 +27,7 @@ impl XCStringConverter {
         }
     }
 
+    #[allow(dead_code)]
     pub fn convert(&self, messages: Vec<models::LocalizableICUMessage>) -> Result<xcstrings::XCStrings, String> {
         let mut xcstrings = xcstrings::XCStrings {
             source_language: self.source_language.clone(),
