@@ -3,7 +3,7 @@
     {
       "key": "simple_arg",
       "messages": {
-        "en": { "value": "Hello, {name}!", "state": "translated" }
+        "en": { "value": "Hello, {name}!", "state": "needs_review" }
       },
       "comment": "Simple argument replacement"
     },

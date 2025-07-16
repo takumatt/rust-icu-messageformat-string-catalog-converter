@@ -38,7 +38,7 @@ pub struct StringUnit {
 }
 
 #[derive(Clone, Debug, Serialize, PartialEq)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "snake_case")]
 pub enum LocalizationState {
     Translated,
     NeedsReview,
@@ -80,7 +80,7 @@ mod tests {
         // NeedsReview should serialize to "needsReview" (camelCase)
         let needs_review = LocalizationState::NeedsReview;
         let json = serde_json::to_string(&needs_review).unwrap();
-        assert_eq!(json, "\"needsReview\"");
+        assert_eq!(json, "\"needs_review\"");
     }
 
     #[test]
@@ -91,7 +91,7 @@ mod tests {
         };
 
         let json = serde_json::to_string(&string_unit).unwrap();
-        assert!(json.contains("\"state\":\"needsReview\""));
+        assert!(json.contains("\"state\":\"needs_review\""));
         assert!(json.contains("\"value\":\"Test value\""));
     }
 }
